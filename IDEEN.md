@@ -4,9 +4,8 @@ Nog niet gebouwd. De volgorde is een voorstel.
 
 ## Ontwerpen beheren
 
-- **Meerdere ontwerpen opslaan** in de browser, met een overzicht en miniaturen.
 - **Bulk-export** van meerdere wraps tegelijk, met bestandsnamen die de Tesla-app herkent. Hoeveel wraps de Tesla-app of een USB-stick aankan, moet nog worden uitgezocht.
-- **Galerij of deellink.** Dat vraagt een backend (bijvoorbeeld Supabase) en een keuze over privacy.
+- **Gedeelde galerij.** Gebruikers publiceren hun ontwerp en delen een link. Dat vraagt Supabase met inloggen, moderatie en een keuze over foto's.
 
 ## Tekenen
 
@@ -28,7 +27,6 @@ Nog niet gebouwd. De volgorde is een voorstel.
 
 ## Bediening en platform
 
-- **Ongedaan maken na een modelwissel**, zodat een ontwerp terug kan.
 - **Installeerbaar** als app op de telefoon, en offline werken (PWA).
 - **Voorbeeld op een 3D-auto.** Dat vraagt een extra library; de site gebruikt nu geen externe libraries.
 - **Extra talen**, zoals Engels en Duits.

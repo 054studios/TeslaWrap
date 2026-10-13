@@ -978,3 +978,86 @@ dialog::backdrop {
     animation: none !important;
   }
 }
+
+a.brand {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* --- mijn ontwerpen (startpagina) ------------------------------------------------------ */
+
+.designs {
+  margin-bottom: 40px;
+}
+
+.designs h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.design-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.design-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: var(--surface);
+}
+
+.design-card.is-current {
+  border-color: var(--accent);
+}
+
+.design-thumb {
+  aspect-ratio: 1;
+  border-radius: var(--r-s);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.design-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.design-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.design-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn.small {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .design-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .design-card {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .design-actions .btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}

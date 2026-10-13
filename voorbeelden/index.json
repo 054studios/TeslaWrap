@@ -1,0 +1,84 @@
+{
+  "examples": [
+    {
+      "id": "rode-lijnen",
+      "name": "Rode lijnen",
+      "model": "model3-2024-base",
+      "modelName": "Model 3 (2024+) Standard & Premium",
+      "group": "Model 3",
+      "description": "Donkergrijs met twee rode racestrepen over het midden.",
+      "image": "voorbeelden/rode-lijnen.png",
+      "thumb": "voorbeelden/rode-lijnen-512.png"
+    },
+    {
+      "id": "zonsondergang",
+      "name": "Zonsondergang",
+      "model": "modely-2025-base",
+      "modelName": "Model Y (2025+) Standard",
+      "group": "Model Y",
+      "description": "Een verloop van oranje naar paars met een witte horizon.",
+      "image": "voorbeelden/zonsondergang.png",
+      "thumb": "voorbeelden/zonsondergang-512.png"
+    },
+    {
+      "id": "carbon",
+      "name": "Carbon",
+      "model": "models-2025-plaid",
+      "modelName": "Model S (2025+) Plaid",
+      "group": "Model S",
+      "description": "Een donker verloop met fijne diagonale lijnen.",
+      "image": "voorbeelden/carbon.png",
+      "thumb": "voorbeelden/carbon-512.png"
+    },
+    {
+      "id": "blauwe-golven",
+      "name": "Blauwe golven",
+      "model": "modelx-2021",
+      "modelName": "Model X (2021+)",
+      "group": "Model X",
+      "description": "Lichtblauwe golven over een diepblauwe basis.",
+      "image": "voorbeelden/blauwe-golven.png",
+      "thumb": "voorbeelden/blauwe-golven-512.png"
+    },
+    {
+      "id": "industrieel",
+      "name": "Industrieel",
+      "model": "cybertruck",
+      "modelName": "Cybertruck",
+      "group": "Cybertruck",
+      "description": "Staalgrijs met een raster en één oranje streep.",
+      "image": "voorbeelden/industrieel.png",
+      "thumb": "voorbeelden/industrieel-512.png"
+    },
+    {
+      "id": "minimaal",
+      "name": "Minimaal",
+      "model": "modely-l",
+      "modelName": "Model Y L",
+      "group": "Model Y",
+      "description": "Lichtgrijs met één zwarte lijn over het midden.",
+      "image": "voorbeelden/minimaal.png",
+      "thumb": "voorbeelden/minimaal-512.png"
+    },
+    {
+      "id": "neon",
+      "name": "Neon",
+      "model": "model3-2024-performance",
+      "modelName": "Model 3 (2024+) Performance",
+      "group": "Model 3",
+      "description": "Zwart met een cyaan en een magenta zigzag langs de zijkanten.",
+      "image": "voorbeelden/neon.png",
+      "thumb": "voorbeelden/neon-512.png"
+    },
+    {
+      "id": "waarschuwing",
+      "name": "Waarschuwing",
+      "model": "modely-2025-performance",
+      "modelName": "Model Y (2025+) Performance",
+      "group": "Model Y",
+      "description": "Zwarte basis met gele diagonale strepen.",
+      "image": "voorbeelden/waarschuwing.png",
+      "thumb": "voorbeelden/waarschuwing-512.png"
+    }
+  ]
+}

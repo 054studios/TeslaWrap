@@ -3,214 +3,98 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Ontwerp je eigen Tesla-wrap en exporteer hem als PNG, klaar voor de Tesla-app.">
+  <meta name="description" content="Ontwerp je eigen Tesla-wrap in de browser en download hem als PNG, klaar voor de Tesla-app. Bekijk de voorbeelden in de galerij.">
   <meta name="theme-color" content="#0f1217">
   <title>Tesla Wrap Ontwerper</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.2c2.3-2.6 14.7-2.6 17 0-2.3 2.2-14.7 2.2-17 0z"/><path d="M12 10.5v9"/></svg>
-      <span>Tesla Wrap</span>
-    </div>
-
-    <nav class="steps" aria-label="Stappen">
-      <button class="step" type="button" data-step="model"><span class="step-num">1</span><span>Model</span></button>
-      <button class="step" type="button" data-step="edit" disabled><span class="step-num">2</span><span>Ontwerpen</span></button>
-      <button class="step" type="button" data-step="export" disabled><span class="step-num">3</span><span>Exporteren</span></button>
-    </nav>
-
-    <div class="top-actions">
-      <button class="icon-btn" id="undo" type="button" aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl+Z)" disabled>
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-      </button>
-      <button class="icon-btn" id="redo" type="button" aria-label="Opnieuw" title="Opnieuw (Ctrl+Y)" disabled>
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
-      </button>
-      <button class="btn quiet" id="save-project" type="button" title="Project opslaan als bestand">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
-        <span class="hide-sm">Project opslaan</span>
-      </button>
-      <button class="btn quiet" id="open-project" type="button" title="Project openen uit bestand">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>
-        <span class="hide-sm">Project openen</span>
-      </button>
-      <button class="btn primary" id="export" type="button" disabled>Exporteren als PNG</button>
+  <header class="site-head">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Tesla Wrap Ontwerper, startpagina">
+        <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.2c2.3-2.6 14.7-2.6 17 0-2.3 2.2-14.7 2.2-17 0z"/><path d="M12 10.5v9"/></svg>
+        <span>Tesla Wrap</span>
+      </a>
+      <nav class="site-nav" aria-label="Op deze pagina">
+        <a href="#galerij">Galerij</a>
+        <a href="#hoe">Hoe het werkt</a>
+        <a href="#voordelen">Voordelen</a>
+      </nav>
+      <a class="btn primary" href="/ontwerp/">Begin met ontwerpen</a>
     </div>
   </header>
 
-  <!-- Stap 1: model kiezen -->
-  <div class="view" id="start">
-    <div class="start-head">
-      <div>
-        <h1>Kies je Tesla-model</h1>
-        <p>Elk model heeft een eigen paneelindeling. Je kunt later altijd wisselen.</p>
-      </div>
-      <button class="btn quiet" id="start-back" type="button" hidden>Terug naar mijn ontwerp</button>
-    </div>
-
-    <section class="resume" id="resume" hidden>
-      <div class="resume-text">
-        <strong id="resume-title"></strong>
-        <span class="muted small" id="resume-meta"></span>
-      </div>
-      <div class="resume-actions">
-        <button class="btn primary" id="resume-open" type="button">Doorgaan</button>
-        <button class="btn quiet" id="resume-clear" type="button">Verwijderen</button>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-text">
+          <h1>Ontwerp je eigen Tesla-wrap</h1>
+          <p class="lead">Kleur de panelen, zet een foto op één paneel of over de hele wrap, en download een PNG die klaar is voor de Tesla-app. Geen account nodig.</p>
+          <div class="hero-actions">
+            <a class="btn primary big" href="/ontwerp/">Begin met ontwerpen</a>
+            <a class="btn quiet big" href="#galerij">Bekijk de voorbeelden</a>
+          </div>
+        </div>
+        <figure class="hero-figure">
+          <img src="voorbeelden/rode-lijnen-512.png" width="512" height="512" alt="Voorbeeld: een donkergrijze wrap met twee rode racestrepen over het midden">
+          <figcaption>Voorbeeld: Rode lijnen, Model 3</figcaption>
+        </figure>
       </div>
     </section>
 
-    <div id="model-grid"></div>
-    <p class="muted small" id="start-note"></p>
-  </div>
-
-  <!-- Stap 2: ontwerpen -->
-  <div class="layout" id="editor" hidden>
-    <aside class="tools card" aria-label="Gereedschap">
-      <div class="tool-list" role="group" aria-label="Gereedschap">
-        <button class="tool" type="button" data-tool="select" aria-pressed="true">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18 11l-5.5 1.5L10 18z"/></svg><span>Selecteer</span>
-        </button>
-        <button class="tool" type="button" data-tool="move" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span>Verplaats</span>
-        </button>
-        <button class="tool" type="button" data-tool="brush" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4 10 13"/><path d="M9.5 13.5a3 3 0 0 0-3 3c-.6 1.6-1.5 2.5-3.5 3 2.5 1.2 6 .8 7.5-1.2a3 3 0 0 0-1-4.8z"/></svg><span>Kwast</span>
-        </button>
-        <button class="tool" type="button" data-tool="eraser" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 16-3.5-3.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19.5H9z"/><path d="m9.5 9.5 6 6"/></svg><span>Gum</span>
-        </button>
-        <button class="tool" type="button" data-tool="text" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/></svg><span>Tekst</span>
-        </button>
-      </div>
-
-      <details open>
-        <summary>Kleur en dikte</summary>
-        <label class="field"><span>Kleur</span><input type="color" id="color" value="#d24b43"></label>
-        <label class="field"><span>Dikte <b class="mono" id="size-out">24</b> px</span><input type="range" id="size" min="4" max="200" value="24"></label>
-      </details>
-
-      <details open>
-        <summary>Panelen</summary>
-        <label class="check"><input type="checkbox" id="multi"> Meerdere panelen kiezen</label>
-        <label class="check"><input type="checkbox" id="symmetry"> Symmetrisch tekenen</label>
-        <div class="row">
-          <button class="btn" type="button" id="select-all">Alles</button>
-          <button class="btn" type="button" id="select-none">Niets</button>
+    <section class="section" id="galerij" aria-labelledby="galerij-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="galerij-title">Galerij</h2>
+          <p>Open een voorbeeld om het aan te passen. Je krijgt dan een eigen kopie in je lijst met ontwerpen.</p>
         </div>
-        <label class="check"><input type="checkbox" id="outlines" checked> Paneellijnen</label>
-        <label class="check"><input type="checkbox" id="labels"> Paneelnummers</label>
-      </details>
-
-      <details open>
-        <summary>Toevoegen</summary>
-        <div class="stack">
-          <button class="btn" type="button" id="add-fill">Kleurvlak</button>
-          <button class="btn" type="button" id="add-photo">Foto voor hele wrap</button>
-          <button class="btn" type="button" id="add-photo-each" hidden>Eén foto per paneel</button>
-          <button class="btn" type="button" id="add-sticker">Sticker of logo</button>
-          <button class="btn" type="button" id="add-text">Tekst</button>
-        </div>
-        <p class="muted small" id="scope-note"></p>
-      </details>
-
-      <button class="btn quiet danger" type="button" id="clear-all">Alles leegmaken</button>
-    </aside>
-
-    <section class="stage-col" aria-label="Ontwerp">
-      <div class="stage" id="stage">
-        <div class="viewport" id="viewport">
-          <canvas id="wrap" width="1024" height="1024" aria-hidden="true"></canvas>
-          <canvas id="overlay" width="1024" height="1024" role="img" aria-label="Ontwerp van de wrap"></canvas>
-        </div>
-        <div class="zoom" role="toolbar" aria-label="Zoom">
-          <button class="icon-btn" id="zoom-out" type="button" aria-label="Uitzoomen" title="Uitzoomen (-)">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
-          </button>
-          <output class="mono" id="zoom-level">100%</output>
-          <button class="icon-btn" id="zoom-in" type="button" aria-label="Inzoomen" title="Inzoomen (+)">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-          </button>
-          <button class="icon-btn" id="zoom-fit" type="button" aria-label="Hele wrap in beeld" title="Hele wrap (0)">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-          </button>
-          <button class="icon-btn" id="zoom-panel" type="button" aria-label="Naar gekozen paneel zoomen" title="Naar gekozen paneel">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="meta">
-        <div class="model-line">
-          <span class="model-title" id="model-name"></span>
-          <span class="chip mono" id="panel-count"></span>
-          <span class="chip mono" id="sel-count"></span>
-        </div>
-        <p class="hint" id="hint"></p>
+        <div class="filters" id="filters" role="group" aria-label="Filter op model"></div>
+        <div class="cards" id="gallery-grid" aria-live="polite"><p class="muted">Voorbeelden laden…</p></div>
       </div>
     </section>
 
-    <aside class="side">
-      <section class="card">
-        <h2>Eigenschappen</h2>
-        <div id="props"></div>
-      </section>
-      <section class="card">
-        <h2>Lagen</h2>
-        <ol class="layer-list" id="layers"></ol>
-      </section>
-    </aside>
+    <section class="section" id="hoe" aria-labelledby="hoe-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="hoe-title">Hoe het werkt</h2>
+          <p>In drie stappen van een leeg model naar een PNG voor de Tesla-app.</p>
+        </div>
+        <ol class="how">
+          <li><span class="num" aria-hidden="true">1</span><strong>Kies je model</strong><p>Elk Tesla-model heeft zijn eigen paneelindeling. Kies het jouwe.</p></li>
+          <li><span class="num" aria-hidden="true">2</span><strong>Ontwerp</strong><p>Kleur de panelen, teken, of zet je foto's op één paneel of over de hele wrap.</p></li>
+          <li><span class="num" aria-hidden="true">3</span><strong>Exporteer en upload</strong><p>Download de PNG en upload die in de Tesla-app.</p></li>
+        </ol>
+      </div>
+    </section>
 
-    <nav class="mobile-tools" aria-label="Gereedschap op de telefoon">
-      <button class="tool" type="button" data-tool="select" aria-pressed="true">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18 11l-5.5 1.5L10 18z"/></svg><span>Selecteer</span>
-      </button>
-      <button class="tool" type="button" data-tool="move" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span>Verplaats</span>
-      </button>
-      <button class="tool" type="button" data-tool="brush" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4 10 13"/><path d="M9.5 13.5a3 3 0 0 0-3 3c-.6 1.6-1.5 2.5-3.5 3 2.5 1.2 6 .8 7.5-1.2a3 3 0 0 0-1-4.8z"/></svg><span>Kwast</span>
-      </button>
-      <button class="tool" type="button" data-tool="eraser" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 16-3.5-3.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19.5H9z"/><path d="m9.5 9.5 6 6"/></svg><span>Gum</span>
-      </button>
-      <button class="tool" type="button" data-tool="text" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/></svg><span>Tekst</span>
-      </button>
-      <button class="tool" type="button" id="mobile-photo">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5.5-5.5L8 18"/></svg><span>Foto</span><small id="mobile-photo-scope">hele wrap</small>
-      </button>
-    </nav>
-  </div>
+    <section class="section" id="voordelen" aria-labelledby="voordelen-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="voordelen-title">Voordelen</h2>
+          <p>Alles werkt in de browser, zonder account. Je foto's blijven op je eigen apparaat.</p>
+        </div>
+        <div class="features-grid">
+          <article><h3>Per paneel of over de hele wrap</h3><p>Zet een foto op één paneel, over een selectie, of over de hele wrap.</p></article>
+          <article><h3>Symmetrie</h3><p>Teken aan één kant, en de andere kant volgt automatisch.</p></article>
+          <article><h3>Verplaatsen, vergroten, draaien</h3><p>Met de muis, met pijltjes, of met twee vingers op je telefoon.</p></article>
+          <article><h3>Meerdere ontwerpen</h3><p>Bewaar zoveel ontwerpen als je wilt. Ze blijven in je browser staan.</p></article>
+          <article><h3>Klaar voor de upload</h3><p>PNG op de juiste afmeting, zwart tussen de panelen, maximaal 1 MB.</p></article>
+          <article><h3>Op je telefoon</h3><p>Werkt op pc, tablet en telefoon.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
 
-  <dialog id="export-dialog" aria-labelledby="export-title">
-    <form method="dialog" class="export-head">
-      <h2 id="export-title">Exporteren</h2>
-      <button class="icon-btn" value="close" aria-label="Sluiten">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
-      </button>
-    </form>
-    <div class="export-body">
-      <img id="export-preview" alt="Voorbeeld van je wrap">
-      <p class="muted small" id="export-info"></p>
-      <ul class="checks" id="export-checks"></ul>
-      <p class="muted small">Upload dit bestand daarna in de Tesla-app: Creations, Wrap, Upload (vanaf versie 4.59.0).</p>
+  <footer class="site-foot">
+    <div class="wrap">
+      <p>Tesla Wrap Ontwerper is niet gemaakt door Tesla en is er niet mee verbonden. De paneelindelingen komen uit de openbare repo <a href="https://github.com/teslamotors/custom-wraps">teslamotors/custom-wraps</a>.</p>
     </div>
-    <div class="export-actions">
-      <a class="btn primary" id="export-download" download>Downloaden als PNG</a>
-      <button class="btn" id="export-share" type="button" hidden>Delen of opslaan</button>
-    </div>
-  </dialog>
+  </footer>
 
-  <input type="file" id="photo-input" accept="image/*" class="sr-only" tabindex="-1">
-  <input type="file" id="photo-each-input" accept="image/*" multiple class="sr-only" tabindex="-1">
-  <input type="file" id="sticker-input" accept="image/png,image/webp,image/svg+xml" class="sr-only" tabindex="-1">
-  <input type="file" id="project-input" accept="application/json,.json" class="sr-only" tabindex="-1">
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/landing.js"></script>
 </body>
 </html>

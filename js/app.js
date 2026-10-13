@@ -3,7 +3,7 @@ import { loadTemplate, idAt, boundsOf } from './template.js';
 import { renderWrap, renderOverlay, ensurePaint, drawStroke, drawSegment, hitLayer, FONTS, toLocal, transformHandles, imageBox, textBox } from './render.js';
 import { History, copyLayers } from './model.js';
 import { exportWrap } from './export.js';
-import { saveDraft, loadDraft, clearDraft } from './store.js';
+import { listDesigns, getContent, putDesign, putMeta, deleteDesign, loadLegacy, clearLegacy } from './store.js';
 import { makeCanvas, loadImage, download, stamp, esc, clamp, newId } from './util.js';
 
 const MODELS_URL = 'assets/templates/index.json';
@@ -33,9 +33,8 @@ const el = {
   grid: $('#model-grid'),
   startBack: $('#start-back'),
   startNote: $('#start-note'),
-  resume: $('#resume'),
-  resumeTitle: $('#resume-title'),
-  resumeMeta: $('#resume-meta'),
+  designs: $('#designs'),
+  designGrid: $('#design-grid'),
   editor: $('#editor'),
   stage: $('#stage'),
   viewport: $('#viewport'),
@@ -101,7 +100,8 @@ let photoTarget = null; // laag die een nieuwe foto krijgt; null = nieuwe fotola
 let exportUrl = null;
 let flashTimer = 0;
 let saveTimer = 0;
-let pendingDraft = null;
+let designList = []; // alle opgeslagen ontwerpen als lijstitems, het laatst bewerkte eerst
+let activeDesign = null; // { id, name } van het ontwerp dat je nu bewerkt; null = nog niet opgeslagen
 
 // --- hulpfuncties ----------------------------------------------------------------
 
@@ -364,8 +364,12 @@ function setScreen(name) {
   screen = name;
   el.start.hidden = name !== 'start';
   el.editor.hidden = name !== 'editor';
-  if (name === 'start') renderModelGrid();
-  else refresh();
+  if (name === 'start') {
+    renderModelGrid();
+    renderDesigns();
+  } else {
+    refresh();
+  }
   updateSteps();
   window.scrollTo(0, 0);
 }
@@ -491,23 +495,9 @@ async function selectModel(id, { keepDoc = false } = {}) {
   else resetDocument();
 }
 
-// Kiest een model op de startpagina. Wisselen wist het ontwerp, dus daar vragen we eerst om bevestiging.
-// Er staat al werk op het canvas: een laag naast de standaardlaag, of iets om ongedaan te maken.
-function hasDesign() {
-  return !!current && (history.canUndo || scene.layers.length > 1);
-}
+// --- ontwerpen: meerdere designs, automatisch opgeslagen in de browser ---------------------
 
-async function chooseModel(id) {
-  if (current && id === current.id) return setScreen('editor');
-  if (hasDesign() && !confirm('Een ander model wisselt het sjabloon. Je huidige ontwerp wordt dan gewist. Doorgaan?')) return;
-  try {
-    await selectModel(id);
-    await clearDraft();
-    setScreen('editor');
-  } catch (err) {
-    alert(`Model laden mislukt: ${err.message}`);
-  }
-}
+const designId = () => `d${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 // Leeg ontwerp voor het gekozen model. Lagen en selectie zijn per model, dus die worden ook gewist.
 function resetDocument() {
@@ -521,58 +511,185 @@ function resetDocument() {
   refresh();
 }
 
-// --- automatisch opslaan en herstellen ----------------------------------------------------
-
 function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveDraftNow, 700);
 }
 
-function saveDraftNow() {
+// Miniatuur van het ontwerp: het gerenderde wrap, klein en als JPEG.
+function thumbnail() {
+  renderWrap(scene);
+  const w = 180;
+  const h = Math.round((w * scene.h) / scene.w);
+  const c = makeCanvas(w, h);
+  c.getContext('2d').drawImage(scene.out, 0, 0, w, h);
+  return c.toDataURL('image/jpeg', 0.8);
+}
+
+// Bewaart het open ontwerp. Een leeg ontwerp krijgt pas een plek in de lijst als er iets op staat;
+// een ontwerp dat al in de lijst staat (bijvoorbeeld na "Alles leegmaken") wordt ook leeg bewaard.
+async function saveDraftNow() {
   clearTimeout(saveTimer);
-  if (!current || isBlank(scene.layers)) return;
+  if (!current) return;
+  if (!activeDesign) {
+    if (isBlank(scene.layers)) return;
+    activeDesign = { id: designId(), name: `Ontwerp ${designList.length + 1}` };
+  }
   const assets = [];
   for (const l of scene.layers) {
     if (l.asset && scene.assets.has(l.asset) && !assets.some((a) => a.id === l.asset)) {
       assets.push({ id: l.asset, dataUrl: scene.assets.get(l.asset).dataUrl });
     }
   }
-  saveDraft({ id: 'current', model: current.id, layers: scene.layers, assets, savedAt: Date.now() });
+  const meta = { id: activeDesign.id, name: activeDesign.name, model: current.id, savedAt: Date.now(), thumb: thumbnail() };
+  designList = [meta, ...designList.filter((d) => d.id !== meta.id)];
+  await putDesign(meta, { layers: scene.layers, assets });
 }
 
-function showResume(draft) {
-  const meta = models.find((m) => m.id === draft.model);
-  pendingDraft = draft;
-  el.resumeTitle.textContent = `Doorgaan met je ontwerp voor ${meta ? meta.name : 'je model'}`;
-  el.resumeMeta.textContent = `Automatisch opgeslagen op ${new Date(draft.savedAt).toLocaleString('nl-NL', {
-    day: 'numeric',
-    month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-  })}`;
-  el.resume.hidden = false;
+// Zet de inhoud van een ontwerp (lagen en foto's) in de editor.
+async function applyContent(layers, assets) {
+  scene.assets.clear();
+  for (const a of assets || []) {
+    const img = await loadImage(a.dataUrl);
+    scene.assets.set(a.id, { id: a.id, img, w: img.naturalWidth, h: img.naturalHeight, dataUrl: a.dataUrl });
+  }
+  scene.layers = layers;
+  scene.paint.clear();
+  scene.selLayerId = null;
+  scene.selPanels.clear();
+  for (const k of Object.keys(counters)) counters[k] = scene.layers.filter((l) => l.type === k).length;
+  history.reset(copyLayers(scene.layers));
 }
 
-async function resumeDraft(draft) {
+// Kiest een model: dat is een nieuw, leeg ontwerp. Het vorige ontwerp blijft in de lijst staan.
+async function chooseModel(id) {
+  if (current && id === current.id) return setScreen('editor');
   try {
-    await selectModel(draft.model, { keepDoc: true });
-    scene.assets.clear();
-    for (const a of draft.assets || []) {
-      const img = await loadImage(a.dataUrl);
-      scene.assets.set(a.id, { id: a.id, img, w: img.naturalWidth, h: img.naturalHeight, dataUrl: a.dataUrl });
-    }
-    scene.layers = draft.layers;
-    scene.paint.clear();
-    scene.selLayerId = null;
-    scene.selPanels.clear();
-    for (const k of Object.keys(counters)) counters[k] = scene.layers.filter((l) => l.type === k).length;
-    history.reset(copyLayers(scene.layers));
-    pendingDraft = null;
-    el.resume.hidden = true;
+    await saveDraftNow();
+    await selectModel(id);
+    activeDesign = null;
     setScreen('editor');
   } catch (err) {
-    alert(`Herstellen mislukt: ${err.message}`);
+    alert(`Model laden mislukt: ${err.message}`);
   }
+}
+
+// Opent een ontwerp uit de lijst.
+async function openDesign(id) {
+  try {
+    await saveDraftNow();
+    const meta = designList.find((d) => d.id === id);
+    const content = await getContent(id);
+    if (!meta || !content) throw new Error('dit ontwerp is niet meer beschikbaar');
+    await selectModel(meta.model, { keepDoc: true });
+    await applyContent(content.layers, content.assets);
+    activeDesign = { id: meta.id, name: meta.name };
+    setScreen('editor');
+  } catch (err) {
+    alert(`Ontwerp openen mislukt: ${err.message}`);
+  }
+}
+
+// Opent een projectbestand of voorbeeld als nieuw ontwerp in de lijst.
+async function importProject(data, name) {
+  // Oudere projecten noemden het sjabloon met pad (assets/templates/voyager): de laatste naam is het model.
+  const wanted = data.model || String(data.template || '').split('/').pop();
+  if (!models.some((m) => m.id === wanted)) throw new Error(`het model "${wanted}" bestaat niet meer`);
+  await saveDraftNow();
+  await selectModel(wanted, { keepDoc: true });
+  const assets = Object.entries(data.assets || {}).map(([id, a]) => ({ id, dataUrl: a.dataUrl }));
+  await applyContent(data.layers, assets);
+  activeDesign = { id: designId(), name };
+  await saveDraftNow();
+  setScreen('editor');
+}
+
+// Een voorbeeld uit de gallery, als eigen kopie.
+async function openExample(id) {
+  const r = await fetch(`voorbeelden/${encodeURIComponent(id)}.json`);
+  if (!r.ok) throw new Error(`voorbeeld niet gevonden (${r.status})`);
+  const data = await r.json();
+  await importProject(data, data.name || 'Voorbeeld');
+}
+
+async function duplicateDesign(id) {
+  await saveDraftNow();
+  const meta = designList.find((d) => d.id === id);
+  const content = await getContent(id);
+  if (!meta || !content) return;
+  const copy = { ...meta, id: designId(), name: `Kopie van ${meta.name}`, savedAt: Date.now() };
+  await putDesign(copy, content);
+  designList = [copy, ...designList];
+  renderDesigns();
+}
+
+async function renameDesign(id) {
+  const meta = designList.find((d) => d.id === id);
+  if (!meta) return;
+  const name = prompt('Nieuwe naam voor dit ontwerp', meta.name);
+  if (name === null || !name.trim()) return;
+  meta.name = name.trim().slice(0, 60);
+  if (activeDesign && activeDesign.id === id) activeDesign.name = meta.name;
+  await putMeta(meta);
+  renderDesigns();
+}
+
+async function removeDesign(id) {
+  const meta = designList.find((d) => d.id === id);
+  if (!meta || !confirm(`"${meta.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+  await deleteDesign(id);
+  designList = designList.filter((d) => d.id !== id);
+  if (activeDesign && activeDesign.id === id) {
+    activeDesign = null;
+    if (current) resetDocument(); // zodat het verwijderde ontwerp niet opnieuw wordt bewaard
+  }
+  renderDesigns();
+}
+
+// Mijn ontwerpen op de startpagina.
+function renderDesigns() {
+  el.designs.hidden = !designList.length;
+  el.designGrid.innerHTML = designList.map(designCard).join('');
+}
+
+function designCard(d) {
+  const model = models.find((m) => m.id === d.model);
+  const open = activeDesign && activeDesign.id === d.id;
+  const when = new Date(d.savedAt).toLocaleString('nl-NL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  return `<article class="design-card${open ? ' is-current' : ''}">
+    <div class="design-thumb">${d.thumb ? `<img src="${d.thumb}" alt="">` : ''}</div>
+    <div class="design-info">
+      <strong>${esc(d.name)}</strong>
+      <span class="muted small">${esc(model ? model.name : d.model)}</span>
+      <span class="muted small mono">${esc(when)}</span>
+    </div>
+    <div class="design-actions">
+      <button class="btn ${open ? 'primary' : 'quiet'} small" type="button" data-design="open" data-id="${d.id}">${open ? 'Doorgaan' : 'Openen'}</button>
+      <button class="btn quiet small" type="button" data-design="dup" data-id="${d.id}">Dupliceren</button>
+      <button class="btn quiet small" type="button" data-design="rename" data-id="${d.id}">Hernoemen</button>
+      <button class="btn quiet small danger" type="button" data-design="del" data-id="${d.id}">Verwijderen</button>
+    </div>
+  </article>`;
+}
+
+function onDesignClick(e) {
+  const btn = e.target.closest('[data-design]');
+  if (!btn) return;
+  const actions = { open: openDesign, dup: duplicateDesign, rename: renameDesign, del: removeDesign };
+  actions[btn.dataset.design](btn.dataset.id);
+}
+
+// Laadt de lijst uit de opslag. Een oud enkel ontwerp wordt eerst in de lijst gezet.
+async function loadDesigns() {
+  const legacy = await loadLegacy();
+  if (legacy) {
+    if (legacy.model && models.some((m) => m.id === legacy.model) && !isBlank(legacy.layers || [])) {
+      const meta = { id: designId(), name: 'Mijn ontwerp', model: legacy.model, savedAt: legacy.savedAt || Date.now(), thumb: '' };
+      await putDesign(meta, { layers: legacy.layers, assets: legacy.assets || [] });
+    }
+    await clearLegacy();
+  }
+  designList = await listDesigns();
 }
 
 // --- lagen --------------------------------------------------------------------------
@@ -1305,7 +1422,14 @@ function saveProject() {
   for (const l of scene.layers) {
     if (l.asset && scene.assets.has(l.asset)) assets[l.asset] = { dataUrl: scene.assets.get(l.asset).dataUrl };
   }
-  const data = { format: 'tesla-wrap-project', version: 2, model: current ? current.id : null, layers: scene.layers, assets };
+  const data = {
+    format: 'tesla-wrap-project',
+    version: 2,
+    name: activeDesign ? activeDesign.name : null,
+    model: current ? current.id : null,
+    layers: scene.layers,
+    assets,
+  };
   download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `tesla-wrap-project-${stamp()}.json`);
 }
 
@@ -1318,24 +1442,7 @@ async function loadProjectFile(e) {
     if (data.format !== 'tesla-wrap-project' || !Array.isArray(data.layers)) {
       throw new Error('dit is geen Tesla wrap-project');
     }
-    // Oudere projecten noemden het sjabloon met pad (assets/templates/voyager): de laatste naam is het model.
-    const wanted = data.model || String(data.template || '').split('/').pop();
-    if (!models.some((m) => m.id === wanted)) throw new Error(`het model "${wanted}" bestaat niet meer`);
-    if (hasDesign() && !confirm('Dit project vervangt je huidige ontwerp. Doorgaan?')) return;
-    if (!current || wanted !== current.id) await selectModel(wanted, { keepDoc: true });
-    scene.assets.clear();
-    for (const [id, a] of Object.entries(data.assets || {})) {
-      const img = await loadImage(a.dataUrl);
-      scene.assets.set(id, { id, img, w: img.naturalWidth, h: img.naturalHeight, dataUrl: a.dataUrl });
-    }
-    scene.layers = data.layers;
-    scene.paint.clear();
-    scene.selLayerId = null;
-    scene.selPanels.clear();
-    for (const k of Object.keys(counters)) counters[k] = scene.layers.filter((l) => l.type === k).length;
-    history.reset(copyLayers(scene.layers));
-    setScreen('editor');
-    scheduleSave();
+    await importProject(data, data.name || 'Geïmporteerd ontwerp');
   } catch (err) {
     alert(`Project openen mislukt: ${err.message}`);
   }
@@ -1443,14 +1550,7 @@ function setupEvents() {
     const card = e.target.closest('button[data-model]');
     if (card) chooseModel(card.dataset.model);
   });
-  $('#resume-open').addEventListener('click', () => {
-    if (pendingDraft) resumeDraft(pendingDraft);
-  });
-  $('#resume-clear').addEventListener('click', async () => {
-    await clearDraft();
-    pendingDraft = null;
-    el.resume.hidden = true;
-  });
+  el.designGrid.addEventListener('click', onDesignClick);
 
   $('#add-fill').addEventListener('click', addFill);
   for (const btn of [$('#add-photo'), $('#mobile-photo')]) {
@@ -1469,8 +1569,8 @@ function setupEvents() {
   });
   $('#clear-all').addEventListener('click', () => {
     if (!confirm('Alle lagen verwijderen en opnieuw beginnen?')) return;
-    clearDraft();
     resetDocument();
+    scheduleSave();
   });
   $('#select-all').addEventListener('click', () => {
     scene.selPanels = new Set(scene.tpl.panels.map((p) => p.id));
@@ -1539,10 +1639,20 @@ async function init() {
     const data = await loadModelList();
     models = data.models;
     await loadCatalog();
-    const draft = await loadDraft();
-    if (draft && !isBlank(draft.layers || []) && models.some((m) => m.id === draft.model)) showResume(draft);
+    await loadDesigns();
   } catch (err) {
     el.startNote.textContent = `Laden mislukt: ${err.message}`;
+  }
+  // Een link uit de gallery (?voorbeeld=id) opent dat voorbeeld als eigen ontwerp.
+  const example = new URLSearchParams(location.search).get('voorbeeld');
+  if (example) {
+    window.history.replaceState(null, '', location.pathname);
+    try {
+      await openExample(example);
+      return;
+    } catch (err) {
+      el.startNote.textContent = `Voorbeeld openen mislukt: ${err.message}`;
+    }
   }
   setScreen('start');
 }

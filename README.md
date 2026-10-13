@@ -2,17 +2,26 @@
 
 Ontwerp je eigen Tesla-wrap in de browser en download hem als PNG, klaar voor de Tesla-app.
 
+- De startpagina staat op `/`, met de galerij van voorbeelden.
+- De editor staat op `/ontwerp/`.
+
 Plan en keuzes staan in [PLAN.md](PLAN.md). Ideeën voor later staan in [IDEEN.md](IDEEN.md).
 
 ## Gebruik
 
+Op de startpagina van de editor zie je **Mijn ontwerpen**: al je ontwerpen, met een miniatuur. Per ontwerp kun je het **openen**, **dupliceren**, **hernoemen** of **verwijderen**. Daaronder kies je een **model** voor een nieuw ontwerp.
+
 De editor heeft drie stappen, bovenaan de pagina:
 
-1. **Model**: kies je Tesla-model uit twaalf sjablonen. Bij wisselen wordt het ontwerp gewist, na bevestiging.
+1. **Model**: kies je Tesla-model. Dat maakt een nieuw ontwerp; je vorige ontwerp blijft in je lijst staan.
 2. **Ontwerpen**: klik op een paneel om het te kiezen, en teken, vul of voeg een foto, sticker of tekst toe. Lagen en eigenschappen staan rechts.
 3. **Exporteren**: de controles (formaat, zwart tussen de panelen, bestandsgrootte) moeten groen zijn. Download daarna de PNG.
 
-Het ontwerp wordt automatisch bewaard in dezelfde browser. Kom je later terug, dan kun je doorgaan waar je was.
+Elk ontwerp wordt automatisch bewaard in de browser (IndexedDB). Op een ander apparaat of in een andere browser zie je je ontwerpen niet. Accounts komen later (zie [IDEEN.md](IDEEN.md)).
+
+### Voorbeelden uit de galerij
+
+Op de startpagina staan voorbeelden met een filter per model. Met **Openen en aanpassen** krijg je een eigen kopie in je lijst met ontwerpen; het voorbeeld zelf verandert niet.
 
 ### Foto's
 
@@ -47,20 +56,30 @@ De site gebruikt ES-modules, dus open hem via een webserver:
 
     python3 -m http.server 8000
 
-Ga daarna naar http://localhost:8000.
+Ga daarna naar http://localhost:8000 (startpagina) of http://localhost:8000/ontwerp/ (editor).
 
 ## Structuur
 
-- `index.html`, `css/style.css`: de drie stappen, de editor en de layout. Responsief voor pc en telefoon.
-- `js/app.js`: stappen, gereedschap, zoomen, symmetrie, lagen, project, sneltoetsen en de exportdialoog.
+- `index.html`, `css/landing.css`, `js/landing.js`: de startpagina met galerij, hoe het werkt en voordelen.
+- `ontwerp/index.html`, `css/style.css`: de editor, met de stappen en de lijst met ontwerpen.
+- `js/app.js`: stappen, ontwerpen, gereedschap, zoomen, symmetrie, lagen, project, sneltoetsen en de exportdialoog.
+- `js/store.js`: ontwerpen in IndexedDB (de lijst en de inhoud).
 - `js/render.js`: tekent de lagen. Dezelfde code levert het voorbeeld en de export.
 - `js/template.js`: laadt het paneel-masker, zoekt het paneel onder de aanwijzer en tekent de omlijning.
-- `js/store.js`: automatisch opslaan in IndexedDB.
 - `js/export.js`: PNG-export met controles, en een palet-PNG als het bestand boven 1 MB komt.
 - `js/model.js`, `js/util.js`: geschiedenis (ongedaan maken) en hulpfuncties.
 - `assets/templates/index.json`: lijst met modellen en groepen.
 - `assets/templates/<model>/`: paneel-masker (`mask.png`) en paneelgegevens (`panels.json`): naam, spiegelas en spiegelpaneel per paneel.
+- `voorbeelden/`: de voorbeeldontwerpen voor de galerij. `index.json` is de lijst, `<id>.json` het projectbestand, `<id>.png` de afbeelding (1024 px) en `<id>-512.png` de miniatuur.
+- `scripts/build_examples.py`: maakt de projectbestanden van de voorbeelden.
 - `scripts/build_template.py`: maakt een masker uit een sjabloonafbeelding.
+
+## Voorbeeld toevoegen
+
+1. Voeg een voorbeeld toe aan `EXAMPLES` in `scripts/build_examples.py` en draai `python3 scripts/build_examples.py`. Dat schrijft `voorbeelden/<id>.json` en de lijst `voorbeelden/index.json`.
+2. Maak de afbeeldingen: open `/ontwerp/`, kies *Project openen* en kies `voorbeelden/<id>.json`. Exporteer de PNG en sla hem op als `voorbeelden/<id>.png`. Maak daarna een miniatuur van 512 px breed als `voorbeelden/<id>-512.png`.
+
+Een voorbeeld dat in de editor is geëxporteerd, is pixel voor pixel gelijk aan wat de galerij toont.
 
 ## Sjabloon toevoegen of vernieuwen
 
@@ -85,10 +104,10 @@ Voeg daarna een regel toe aan `assets/templates/index.json`.
 
 ## Project
 
-Een project (JSON) bevat het model, alle lagen, foto's en stickers. Openen zet het model terug. Heb je al werk op het canvas, dan vraagt de app eerst om bevestiging.
+Een project (JSON) bevat het model, de naam, alle lagen, foto's en stickers. Openen maakt een nieuw ontwerp in je lijst; je huidige ontwerp blijft staan.
 
 ## Hosten
 
-De site heeft geen build-stap. Zet de map op een statische host, zoals Vercel of GitHub Pages.
+De site heeft geen build-stap. Zet de map op een statische host, zoals Vercel of GitHub Pages. De startpagina is `/`, de editor is `/ontwerp/`.
 
 Voor Vercel: Framework Preset "Other", geen build-commando, Output Directory `.`.
