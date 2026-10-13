@@ -55,18 +55,20 @@ async function drawSilhouette(canvas, id) {
     }
     ctx.putImageData(d, 0, 0);
   } catch {
-    // Zonder silhouet toont de kaart alleen de naam.
+    // Zonder silhouet toont de rij alleen de naam.
   }
 }
 
-// De autokeuze: elke kaart opent de editor met dat model klaar.
+// De autokeuze: elke rij opent de editor met dat model klaar.
 function modelCard(m) {
   const size = sizes.get(m.id);
   const meta = size ? t('{n} panelen, {w} × {h}', { n: size.panels, w: size.w, h: size.h }) : '';
   return `<a class="model-card" href="/ontwerp/?model=${encodeURIComponent(m.id)}">
     <span class="sil-wrap"><canvas data-sil="${esc(m.id)}" aria-hidden="true"></canvas></span>
-    <span class="model-name">${esc(t(m.name))}</span>
-    <span class="model-meta">${esc(meta)}</span>
+    <span class="model-text">
+      <span class="model-name">${esc(t(m.name))}</span>
+      <span class="model-meta">${esc(meta)}</span>
+    </span>
   </a>`;
 }
 
@@ -75,7 +77,7 @@ function renderPicker() {
     .map(
       (g) => `<section class="model-group" aria-labelledby="g-${slug(g)}">
         <h3 id="g-${slug(g)}">${esc(g)}</h3>
-        <div class="cards">${variantsOf(g).map(modelCard).join('')}</div>
+        <div class="model-list">${variantsOf(g).map(modelCard).join('')}</div>
       </section>`,
     )
     .join('');
@@ -103,21 +105,26 @@ function designCard(ex) {
       <img src="${esc(ex.thumb)}" width="512" height="${height}" loading="lazy" alt="${esc(t('Voorbeeld {name}: {description}', { name, description }))}">
     </div>
     <div class="design-body">
-      <h4>${esc(name)}</h4>
+      <h3>${esc(name)}</h3>
       <p>${esc(description)}</p>
       <div class="design-actions">
-        <a class="btn primary small" href="${esc(ex.image)}" download="${esc(ex.download)}">${t('Download PNG')}</a>
-        <a class="btn quiet small" href="/ontwerp/?voorbeeld=${encodeURIComponent(ex.id)}">${t('Openen en aanpassen')}</a>
+        <a class="btn small" href="${esc(ex.image)}" download="${esc(ex.download)}">${t('Download PNG')}</a>
+        <a class="text-link" href="/ontwerp/?voorbeeld=${encodeURIComponent(ex.id)}">${t('Openen en aanpassen')}</a>
       </div>
     </div>
   </article>`;
 }
+
+// Tijdens het laden: lege kaarten in de vorm van een ontwerp, zonder tekst en zonder beweging.
+const skeletonCards = (n) =>
+  '<div class="design-card is-loading" aria-hidden="true"><div class="design-thumb"></div><div class="design-body"><span class="bar"></span><span class="bar short"></span></div></div>'.repeat(n);
 
 function renderGallery() {
   const list = examples.filter((e) => e.model === variant);
   grid.innerHTML = list.length
     ? list.map(designCard).join('')
     : `<p class="muted">${esc(t('Nog geen voorbeelden voor dit model.'))}</p>`;
+  grid.removeAttribute('aria-busy');
 }
 
 function renderAll() {
@@ -157,6 +164,7 @@ variantFilters.addEventListener('click', (e) => {
 });
 
 async function init() {
+  grid.innerHTML = skeletonCards(10);
   try {
     const [catalog, gallery] = await Promise.all(
       ['assets/templates/index.json', 'voorbeelden/index.json'].map(async (url) => {
@@ -172,7 +180,8 @@ async function init() {
     renderPicker();
     renderAll();
   } catch (err) {
-    grid.innerHTML = `<p class="muted">${esc(t('De galerij kon niet laden ({msg}).', { msg: err.message }))}</p>`;
+    grid.innerHTML = `<p class="muted">${esc(t('De galerij kon niet laden ({msg}).', { msg: err.message }))} ${esc(t('Herlaad de pagina of probeer het later opnieuw.'))}</p>`;
+    grid.removeAttribute('aria-busy');
   }
 }
 

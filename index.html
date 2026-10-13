@@ -6,7 +6,7 @@
   <meta name="description" content="Ontwerp je eigen Tesla-wrap in de browser en download hem als PNG, klaar voor de Tesla-app. Bekijk de voorbeelden in de galerij.">
   <meta name="theme-color" content="#181b21">
   <title>Tesla Wrap Ontwerper</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
   <header class="site-head">
     <div class="wrap head-row">
       <a class="brand" href="/" aria-label="Tesla Wrap Ontwerper, startpagina">
-        <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.2c2.3-2.6 14.7-2.6 17 0-2.3 2.2-14.7 2.2-17 0z"/><path d="M12 10.5v9"/></svg>
+        <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 14 21 9"/></svg>
         <span>Tesla Wrap</span>
       </a>
       <nav class="site-nav" aria-label="Op deze pagina">
@@ -66,7 +66,7 @@
         </div>
         <div class="filters" id="group-filters" role="group" aria-label="Filter op auto"></div>
         <div class="filters variant-filters" id="variant-filters" role="group" aria-label="Filter op model"></div>
-        <div class="cards gallery-grid" id="gallery-grid" aria-live="polite"><p class="muted">Voorbeelden laden…</p></div>
+        <div class="gallery-grid" id="gallery-grid" aria-busy="true"></div>
       </div>
     </section>
 
@@ -76,10 +76,10 @@
           <h2 id="hoe-title">Hoe het werkt</h2>
           <p>In drie stappen van een leeg model naar een PNG voor de Tesla-app.</p>
         </div>
-        <ol class="how">
-          <li><span class="num" aria-hidden="true">1</span><strong>Kies je model</strong><p>Elk Tesla-model heeft zijn eigen paneelindeling. Kies het jouwe.</p></li>
-          <li><span class="num" aria-hidden="true">2</span><strong>Ontwerp</strong><p>Kleur de panelen, teken, of zet je foto's op één paneel of over de hele wrap.</p></li>
-          <li><span class="num" aria-hidden="true">3</span><strong>Exporteer en upload</strong><p>Download de PNG en upload die in de Tesla-app.</p></li>
+        <ol class="steps">
+          <li><span class="step-no" aria-hidden="true">1</span><h3>Kies je model</h3><p>Elk Tesla-model heeft zijn eigen paneelindeling. Kies het jouwe.</p></li>
+          <li><span class="step-no" aria-hidden="true">2</span><h3>Ontwerp</h3><p>Kleur de panelen, teken, of zet je foto's op één paneel of over de hele wrap.</p></li>
+          <li><span class="step-no" aria-hidden="true">3</span><h3>Exporteer en upload</h3><p>Download de PNG en upload die in de Tesla-app.</p></li>
         </ol>
       </div>
     </section>
@@ -90,44 +90,65 @@
           <h2 id="voordelen-title">Voordelen</h2>
           <p>Alles werkt in de browser, zonder account. Je foto's blijven op je eigen apparaat.</p>
         </div>
-        <div class="features-grid">
-          <article><h3>Per paneel of over de hele wrap</h3><p>Zet een foto op één paneel, over een selectie, of over de hele wrap.</p></article>
-          <article><h3>Symmetrie</h3><p>Teken aan één kant, en de andere kant volgt automatisch.</p></article>
-          <article><h3>Verplaatsen, vergroten, draaien</h3><p>Met de muis, met pijltjes, of met twee vingers op je telefoon.</p></article>
-          <article><h3>Meerdere ontwerpen</h3><p>Bewaar zoveel ontwerpen als je wilt. Ze blijven in je browser staan.</p></article>
-          <article><h3>Klaar voor de upload</h3><p>PNG op de juiste afmeting, zwart tussen de panelen, maximaal 1 MB.</p></article>
-          <article><h3>Op je telefoon</h3><p>Werkt op pc, tablet en telefoon.</p></article>
+        <div class="bento">
+          <article class="cell cell-wide cell-visual">
+            <img src="img/bento-wrap.webp" width="1024" height="1024" loading="lazy" alt="Een ontwerp dat met de editor is gemaakt.">
+            <div>
+              <h3>Per paneel of over de hele wrap</h3>
+              <p>Zet een foto op één paneel, over een selectie, of over de hele wrap.</p>
+            </div>
+          </article>
+          <article class="cell">
+            <h3>Symmetrie</h3>
+            <p>Teken aan één kant, en de andere kant volgt automatisch.</p>
+          </article>
+          <article class="cell">
+            <h3>Verplaatsen, vergroten, draaien</h3>
+            <p>Met de muis, met pijltjes, of met twee vingers op je telefoon.</p>
+          </article>
+          <article class="cell">
+            <h3>Meerdere ontwerpen</h3>
+            <p>Bewaar zoveel ontwerpen als je wilt. Ze blijven in je browser staan.</p>
+          </article>
+          <article class="cell">
+            <h3>Op je telefoon</h3>
+            <p>Werkt op pc, tablet en telefoon.</p>
+          </article>
+          <article class="cell cell-statement">
+            <h3>Klaar voor de upload</h3>
+            <p>PNG op de juiste afmeting, zwart tussen de panelen, maximaal 1 MB.</p>
+          </article>
         </div>
       </div>
     </section>
 
     <section class="section" id="vragen" aria-labelledby="vragen-title">
-      <div class="wrap narrow">
+      <div class="wrap">
         <div class="section-head">
           <h2 id="vragen-title">Veelgestelde vragen</h2>
         </div>
-        <div class="faq">
-          <details>
-            <summary>Hoe upload ik de PNG in de Tesla-app?</summary>
-            <p>Ga in de Tesla-app naar Creations, Wrap, Upload (vanaf versie 4.59.0) en kies je PNG.</p>
-          </details>
-          <details>
-            <summary>Kost het iets?</summary>
-            <p>Nee. De editor is gratis en werkt zonder account.</p>
-          </details>
-          <details>
-            <summary>Blijven mijn foto's privé?</summary>
-            <p>Ja. Je foto's blijven in je browser en gaan niet naar een server.</p>
-          </details>
-          <details>
-            <summary>Is dit van Tesla?</summary>
-            <p>Nee. De site is niet van Tesla en niet verbonden met Tesla. De paneelindelingen komen uit een openbare Tesla-repo.</p>
-          </details>
-          <details>
-            <summary>Werkt het op mijn telefoon?</summary>
-            <p>Werkt op pc, tablet en telefoon.</p>
-          </details>
-        </div>
+        <dl class="faq">
+          <div>
+            <dt>Hoe upload ik de PNG in de Tesla-app?</dt>
+            <dd>Ga in de Tesla-app naar Creations, Wrap, Upload (vanaf versie 4.59.0) en kies je PNG.</dd>
+          </div>
+          <div>
+            <dt>Kost het iets?</dt>
+            <dd>Nee. De editor is gratis en werkt zonder account.</dd>
+          </div>
+          <div>
+            <dt>Blijven mijn foto's privé?</dt>
+            <dd>Ja. Je foto's blijven in je browser en gaan niet naar een server.</dd>
+          </div>
+          <div>
+            <dt>Is dit van Tesla?</dt>
+            <dd>Nee. De site is niet van Tesla en niet verbonden met Tesla. De paneelindelingen komen uit een openbare Tesla-repo.</dd>
+          </div>
+          <div>
+            <dt>Werkt het op mijn telefoon?</dt>
+            <dd>Werkt op pc, tablet en telefoon.</dd>
+          </div>
+        </dl>
       </div>
     </section>
 

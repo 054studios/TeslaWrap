@@ -182,7 +182,6 @@
   "Voorbeeld openen mislukt: {msg}": "Örnek açılamadı: {msg}",
   "Voorbeeld van je wrap": "Wrap tasarımının önizlemesi",
   "Voorbeeld {name}: {description}": "Örnek {name}: {description}",
-  "Voorbeelden laden…": "Örnekler yükleniyor…",
   "Voordelen": "Avantajlar",
   "Waarschuwing": "Uyarı",
   "Werkt op pc, tablet en telefoon.": "Bilgisayarda, tablette ve telefonda çalışır.",
@@ -238,5 +237,7 @@
   "Donkergrijs met een raster van witte stippen.": "Koyu gri zemin üzerinde beyaz noktalardan oluşan bir ızgara.",
   "Cirkels": "Çemberler",
   "Antraciet met concentrische cirkels in rood.": "Antrasit zemin üzerinde eş merkezli kırmızı çemberler.",
-  "Het ontwerpscherm van de editor met een ontwerp voor de Model 3: links de tools, in het midden de wrap, rechts de lagen.": "Model 3 için bir tasarımın olduğu editör: solda araçlar, ortada wrap, sağda katmanlar."
+  "Het ontwerpscherm van de editor met een ontwerp voor de Model 3: links de tools, in het midden de wrap, rechts de lagen.": "Model 3 için bir tasarımın olduğu editör: solda araçlar, ortada wrap, sağda katmanlar.",
+  "Herlaad de pagina of probeer het later opnieuw.": "Sayfayı yenileyin veya daha sonra tekrar deneyin.",
+  "Een ontwerp dat met de editor is gemaakt.": "Düzenleyicide yapılmış bir tasarım."
 }

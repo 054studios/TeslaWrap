@@ -182,7 +182,6 @@
   "Voorbeeld openen mislukt: {msg}": "Beispiel konnte nicht geöffnet werden: {msg}",
   "Voorbeeld van je wrap": "Vorschau deines Wraps",
   "Voorbeeld {name}: {description}": "Beispiel {name}: {description}",
-  "Voorbeelden laden…": "Beispiele werden geladen…",
   "Voordelen": "Vorteile",
   "Waarschuwing": "Warnung",
   "Werkt op pc, tablet en telefoon.": "Läuft auf PC, Tablet und Handy.",
@@ -238,5 +237,7 @@
   "Donkergrijs met een raster van witte stippen.": "Dunkelgrau mit einem Raster aus weißen Punkten.",
   "Cirkels": "Kreise",
   "Antraciet met concentrische cirkels in rood.": "Anthrazit mit konzentrischen Kreisen in Rot.",
-  "Het ontwerpscherm van de editor met een ontwerp voor de Model 3: links de tools, in het midden de wrap, rechts de lagen.": "Der Editor mit einem Design für das Model 3: links die Werkzeuge, in der Mitte der Wrap, rechts die Ebenen."
+  "Het ontwerpscherm van de editor met een ontwerp voor de Model 3: links de tools, in het midden de wrap, rechts de lagen.": "Der Editor mit einem Design für das Model 3: links die Werkzeuge, in der Mitte der Wrap, rechts die Ebenen.",
+  "Herlaad de pagina of probeer het later opnieuw.": "Lade die Seite neu oder versuche es später noch einmal.",
+  "Een ontwerp dat met de editor is gemaakt.": "Ein Design, das im Editor gemacht wurde."
 }

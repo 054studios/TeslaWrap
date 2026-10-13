@@ -82,6 +82,7 @@ Ga daarna naar http://localhost:8000 (startpagina) of http://localhost:8000/ontw
 ## Structuur
 
 - `index.html`, `css/landing.css`, `js/landing.js`: de startpagina met de autokeuze, de galerij, hoe het werkt, voordelen en vragen.
+- `DESIGN.md`: de visuele beslissingen voor de startpagina, met de bron van elke regel.
 - `fonts/`: Geist en Geist Mono, zelf gehost. Licentie: `fonts/LICENSE-Geist.txt` (SIL Open Font License).
 - `ontwerp/index.html`, `css/style.css`: de editor, met de stappen en de lijst met ontwerpen.
 - `js/app.js`: stappen, ontwerpen, gereedschap, zoomen, symmetrie, lagen, project, sneltoetsen en de exportdialoog.

@@ -1,4 +1,4 @@
-/* Geist en Geist Mono, zelf gehost (SIL Open Font License, zie fonts/LICENSE-Geist.txt). */
+/* Geist, zelf gehost (SIL Open Font License, zie fonts/LICENSE-Geist.txt). */
 @font-face {
   font-family: "Geist";
   font-style: normal;
@@ -20,30 +20,8 @@
   font-display: swap;
   src: url("../fonts/geist-latin-600-normal.woff2") format("woff2");
 }
-@font-face {
-  font-family: "Geist";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("../fonts/geist-latin-700-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Geist Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("../fonts/geist-mono-latin-400-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Geist Mono";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("../fonts/geist-mono-latin-500-normal.woff2") format("woff2");
-}
 
-/* Startpagina: echt antraciet, één rode accent (alleen actie, focus en één moment), Geist.
-   Beweging is kort en zacht: transform en opacity, geen transition: all. */
+/* Startpagina: donker antraciet, één gedempte rode accent voor de actie, en Geist. */
 :root {
   color-scheme: dark;
   --bg: #181b21;
@@ -54,10 +32,10 @@
   --text: #eef1f5;
   --text-2: #c3cad5;
   --muted: #9aa3b2;
-  --accent: #d1463e;
-  --accent-hover: #cc3931;
-  --r-s: 8px;
-  --r-m: 12px;
+  --accent: #b8443d;
+  --accent-hover: #a33b34;
+  --r-control: 12px;
+  --r-box: 16px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -76,22 +54,22 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 400 16px/1.6 Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 400 16px/1.65 Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: rgba(209, 70, 62, 0.35);
+  background: rgba(184, 68, 61, 0.4);
 }
 
 h1,
 h2,
-h3,
-h4 {
+h3 {
   margin: 0;
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.08;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
@@ -118,33 +96,24 @@ select {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 4px;
 }
 
 .muted {
   color: var(--muted);
 }
 
-.small {
-  font-size: 14px;
-}
-
 .wrap {
-  width: min(1200px, 100% - 48px);
+  width: min(1200px, 100% - 48px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   margin: 0 auto;
-}
-
-.narrow {
-  width: min(760px, 100% - 48px);
 }
 
 .skip-link {
   position: absolute;
-  left: 16px;
+  inset-inline-start: 16px;
   top: -56px;
   z-index: 100;
   padding: 12px 16px;
-  border-radius: var(--r-s);
+  border-radius: var(--r-control);
   background: var(--text);
   color: var(--bg);
   font-weight: 600;
@@ -185,10 +154,14 @@ select {
   width: 26px;
   height: 26px;
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--text);
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.logo path {
+  stroke: var(--accent);
 }
 
 .site-nav {
@@ -201,8 +174,8 @@ select {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 14px;
-  border-radius: var(--r-s);
+  padding: 0 16px;
+  border-radius: var(--r-control);
   color: var(--text-2);
   font-size: 15px;
   text-decoration: none;
@@ -230,7 +203,7 @@ select {
   min-height: 44px;
   padding: 0 20px;
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-s);
+  border-radius: var(--r-control);
   background: var(--surface-2);
   color: var(--text);
   font: 500 15px/1 Geist, system-ui, sans-serif;
@@ -251,7 +224,7 @@ select {
 .btn.primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--text);
 }
 
 .btn.primary:hover {
@@ -274,17 +247,30 @@ select {
   font-size: 14px;
 }
 
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-2);
+  font-size: 14px;
+  text-underline-offset: 4px;
+}
+
+.text-link:hover {
+  color: var(--text);
+}
+
 .lang-select {
   flex-shrink: 0;
   height: 44px;
   max-width: 120px;
   padding: 0 8px;
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-s);
+  border-radius: var(--r-control);
   background: var(--surface-2);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
 }
 
@@ -294,15 +280,14 @@ select {
   display: flex;
   align-items: center;
   min-height: calc(100vh - 68px);
-  min-height: calc(100svh - 68px);
-  padding: 64px 0;
-  border-bottom: 1px solid var(--line);
+  min-height: calc(100dvh - 68px);
+  padding: 56px 0;
 }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.35fr);
-  gap: 56px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 64px;
   align-items: center;
 }
 
@@ -311,27 +296,13 @@ select {
   gap: 24px;
 }
 
-.hero-shot {
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-m);
-  background: var(--surface);
-}
-
-.hero-shot img {
-  width: 100%;
-  height: auto;
-}
-
 .hero h1 {
-  max-width: 16ch;
-  font-size: clamp(2.5rem, 4.6vw, 3.75rem);
+  font-size: clamp(2.5rem, 4vw, 3.25rem);
   line-height: 1.04;
 }
 
 .lead {
-  max-width: 48ch;
+  max-width: 50ch;
   color: var(--text-2);
   font-size: 1.25rem;
   line-height: 1.5;
@@ -341,20 +312,61 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 16px;
+}
+
+.hero-shot {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-box);
+  background: var(--surface);
+}
+
+.hero-shot img {
+  width: 100%;
+  height: auto;
+}
+
+/* Eén moment bij het laden: de editor wordt als een wrap uitgerold. De tekst staat er meteen. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-shot {
+    animation: unroll 0.8s var(--ease-out) 120ms backwards;
+  }
+}
+
+/* Met weinig beweging alleen een korte overgang, zonder verschuiving. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-shot {
+    animation: fade-in 0.3s ease both;
+  }
+}
+
+@keyframes unroll {
+  from {
+    clip-path: inset(0 100% 0 0 round 16px);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* --- secties ------------------------------------------------------------- */
 
 .section {
-  padding: 96px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 112px 0 0;
 }
 
 .section-head {
   display: grid;
   gap: 12px;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .section-head h2 {
@@ -362,52 +374,47 @@ select {
 }
 
 .section-head p {
-  max-width: 60ch;
+  max-width: 65ch;
   color: var(--text-2);
 }
 
-/* --- autokeuze ----------------------------------------------------------- */
+/* --- autokeuze: een lijst per auto, met het silhouet van elk model ------- */
 
 .model-groups {
   display: grid;
-  gap: 48px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 56px 72px;
 }
 
 .model-group h3 {
-  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-strong);
   color: var(--text-2);
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
-  gap: 16px;
 }
 
 .model-card {
   display: grid;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-m);
-  background: var(--surface);
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
   text-decoration: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.model-card:hover {
-  border-color: var(--line-strong);
-  background: var(--surface-2);
+.model-text {
+  display: grid;
+  gap: 4px;
 }
 
 .sil-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 120px;
+  width: 96px;
+  height: 72px;
 }
 
 .sil-wrap canvas {
@@ -424,8 +431,15 @@ select {
 
 .model-meta {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .model-card:hover .model-name {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
 }
 
 /* --- galerij ------------------------------------------------------------- */
@@ -438,14 +452,14 @@ select {
 }
 
 .variant-filters {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
 .chip {
   min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border-radius: var(--r-control);
   background: transparent;
   color: var(--text-2);
   font: 500 14px/1 Geist, system-ui, sans-serif;
@@ -459,27 +473,29 @@ select {
 }
 
 .chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
 }
 
 .gallery-grid {
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 48px 24px;
 }
 
 .design-card {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--r-m);
-  background: var(--surface);
-  transition: border-color 0.15s ease;
+  gap: 16px;
+  min-width: 0;
 }
 
 .design-thumb {
-  background: #000;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
 }
 
 .design-thumb img {
@@ -493,10 +509,9 @@ select {
   flex: 1;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
 }
 
-.design-body h4 {
+.design-body h3 {
   font-size: 1.25rem;
 }
 
@@ -509,128 +524,150 @@ select {
 .design-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 4px 16px;
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 8px;
 }
 
-/* --- hoe het werkt ------------------------------------------------------- */
+/* Tijdens het laden: vormen zonder tekst en zonder beweging. */
+.design-card.is-loading .design-thumb {
+  aspect-ratio: 1 / 1;
+  border-color: transparent;
+  background: var(--surface);
+}
 
-.how {
+.design-card.is-loading .bar {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.design-card.is-loading .bar.short {
+  width: 40%;
+}
+
+/* --- hoe het werkt: drie stappen, met de stap als tekstueel cijfer ------- */
+
+.steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px;
+  gap: 40px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.how li {
+.steps li {
   display: grid;
   gap: 12px;
+  align-content: start;
   padding-top: 24px;
   border-top: 1px solid var(--line-strong);
 }
 
-.num {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  color: var(--accent);
-  font-size: 15px;
-  font-weight: 600;
+.step-no {
+  color: var(--muted);
+  font-size: 2.5rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-.how strong {
+.steps h3 {
   font-size: 1.25rem;
-  font-weight: 600;
 }
 
-.how p {
+.steps p {
   color: var(--text-2);
 }
 
-/* --- voordelen ----------------------------------------------------------- */
+/* --- voordelen: een raster met cellen van verschillende formaten --------- */
 
-.features-grid {
+.bento {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px 48px;
+  gap: 16px;
 }
 
-.features-grid article {
+.cell {
   display: grid;
-  gap: 8px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
+  align-content: start;
+  gap: 12px;
+  padding: 28px;
+  border-radius: var(--r-box);
+  background: var(--surface);
 }
 
-.features-grid h3 {
-  font-size: 1.125rem;
+.cell h3 {
+  font-size: 1.25rem;
 }
 
-.features-grid p {
+.cell p {
   color: var(--text-2);
-  font-size: 15px;
 }
 
-/* --- vragen -------------------------------------------------------------- */
+.cell-wide {
+  grid-column: span 2;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 32px;
+}
+
+.cell-visual img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-control);
+}
+
+.cell-statement {
+  grid-column: 1 / -1;
+  background: var(--surface-2);
+}
+
+.cell-statement h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.cell-statement p {
+  font-size: 1.125rem;
+  max-width: 60ch;
+}
+
+/* --- vragen: een lijst met vraag links en antwoord rechts --------------- */
 
 .faq {
-  border-top: 1px solid var(--line);
+  margin: 0;
+  border-top: 1px solid var(--line-strong);
 }
 
-.faq details {
+.faq > div {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 16px 48px;
+  padding: 24px 0;
   border-bottom: 1px solid var(--line);
 }
 
-.faq summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 56px;
-  padding: 16px 0;
-  font-size: 1.125rem;
+.faq dt {
+  font-size: 1.25rem;
   font-weight: 600;
-  cursor: pointer;
-  list-style: none;
+  line-height: 1.4;
 }
 
-.faq summary::-webkit-details-marker {
-  display: none;
-}
-
-.faq summary::after {
-  content: "+";
-  flex-shrink: 0;
-  color: var(--muted);
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 1;
-  transition: transform 0.2s var(--ease-out);
-}
-
-.faq details[open] summary::after {
-  transform: rotate(45deg);
-}
-
-.faq details p {
-  padding: 0 0 24px;
-  max-width: 62ch;
+.faq dd {
+  margin: 0;
+  max-width: 65ch;
   color: var(--text-2);
 }
 
 /* --- slot ---------------------------------------------------------------- */
 
 .closing {
-  padding: 88px 0;
+  padding: 96px 0;
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
 }
 
 .closing-inner {
@@ -654,6 +691,7 @@ select {
 
 .site-foot {
   padding: 32px 0 48px;
+  border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 14px;
 }
@@ -664,42 +702,75 @@ select {
 
 /* --- tablet en telefoon -------------------------------------------------- */
 
-@media (max-width: 900px) {
-  .features-grid,
-  .how {
-    grid-template-columns: 1fr 1fr;
+/* Onder 1024 px past de navigatie naast de knoppen niet op één regel; de knoppen blijven. */
+@media (max-width: 1023px) {
+  .site-nav {
+    display: none;
   }
 
-  .how li:last-child {
+  .head-actions {
+    margin-left: auto;
+  }
+
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cell-wide {
+    grid-column: 1 / -1;
+  }
+
+  .cell-statement {
     grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 900px) {
+  .hero {
+    min-height: 0;
+    padding: 40px 0 72px;
+  }
+
   .hero-grid {
     grid-template-columns: 1fr;
     gap: 40px;
   }
+
+  .hero h1 {
+    max-width: 16ch;
+  }
 }
 
 @media (max-width: 760px) {
-  .site-nav {
-    display: none;
-  }
-
-  .hero {
-    min-height: 0;
-    padding: 48px 0;
-  }
-
-  .section,
-  .closing {
-    padding: 64px 0;
-  }
-
-  .features-grid,
-  .how {
+  .model-groups,
+  .steps {
     grid-template-columns: 1fr;
+  }
+
+  .steps {
+    gap: 32px;
+  }
+
+  .bento {
+    grid-template-columns: 1fr;
+  }
+
+  .cell-wide {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .section {
+    padding-top: 80px;
+  }
+
+  .closing {
+    padding: 80px 0;
+  }
+
+  .faq > div {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 
@@ -708,21 +779,23 @@ select {
     display: none;
   }
 
-  .cards {
+  .gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 40px 16px;
   }
 
   .model-card {
-    padding: 12px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 16px;
   }
 
   .sil-wrap {
-    height: 96px;
+    width: 72px;
+    height: 56px;
   }
 
-  .gallery-grid {
-    grid-template-columns: 1fr;
+  .cell {
+    padding: 24px;
   }
 }
 
@@ -741,8 +814,7 @@ select {
 @media (hover: hover) and (pointer: fine) {
   .site-nav a:hover,
   .chip:hover,
-  .model-card:hover,
-  .design-card:hover {
+  .design-card:hover .text-link {
     transition-duration: 0.15s;
   }
 }
@@ -756,21 +828,12 @@ select {
   .btn:active {
     transform: none;
   }
-
-  .faq summary::after {
-    transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .site-head {
-    background: var(--bg);
-  }
 }
 
 @media (prefers-contrast: more) {
   :root {
     --line: #4a5160;
+    --line-strong: #5a6172;
     --muted: #b4bcc8;
   }
 }

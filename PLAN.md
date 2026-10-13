@@ -45,7 +45,7 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 
 Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests staan niet in de repo.
 
-- **Landingspagina**: hero (editor in beeld, primaire knop naar de editor, past in het eerste scherm), autokeuze naar de editor, galerij met tien per model en downloads, telefoon en 320 px zonder horizontale scroll.
+- **Landingspagina**: hero (editor in beeld, primaire knop naar de editor, past in het eerste scherm), autokeuze naar de editor, galerij met tien per model en downloads, telefoon en 320 px zonder horizontale scroll. Ontwerpregels en herkomst staan in DESIGN.md.
 - **Meerdere ontwerpen**: aanmaken per model, openen, dupliceren, hernoemen, verwijderen, herladen, een voorbeeld via de link, een oud enkel ontwerp overzetten, telefoon.
 - **Startpagina**: twaalf modelkaarten, stap 1 actief, exporteren uitgeschakeld tot een model is gekozen.
 - **Zoomen**: knoppen, scrollwiel en "Naar gekozen paneel". Op de telefoon: twee vingers.
