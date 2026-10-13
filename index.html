@@ -4,12 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Ontwerp je eigen Tesla-wrap in de browser en download hem als PNG, klaar voor de Tesla-app. Bekijk de voorbeelden in de galerij.">
-  <meta name="theme-color" content="#0f1217">
+  <meta name="theme-color" content="#181b21">
   <title>Tesla Wrap Ontwerper</title>
   <link rel="icon" href="data:,">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
@@ -36,14 +33,18 @@
 
   <main id="inhoud">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="wrap">
-        <p class="eyebrow">Officiële Tesla-sjablonen</p>
-        <h1 id="hero-title">Ontwerp je eigen Tesla-wrap</h1>
-        <p class="lead">Kies je model, kleur de panelen en download een PNG die klaar is voor de Tesla-app. Geen account nodig.</p>
-        <div class="hero-actions">
-          <a class="btn primary big" href="#modellen">Kies je model</a>
-          <a class="btn quiet big" href="#galerij">Bekijk de voorbeelden</a>
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1 id="hero-title">Ontwerp je eigen Tesla-wrap</h1>
+          <p class="lead">Kies je model, kleur de panelen en download een PNG die klaar is voor de Tesla-app. Geen account nodig.</p>
+          <div class="hero-actions">
+            <a class="btn primary big" href="/ontwerp/">Begin met ontwerpen</a>
+            <a class="btn quiet big" href="#modellen">Kies je model</a>
+          </div>
         </div>
+        <figure class="hero-shot">
+          <img src="img/editor-hero-1440.webp" srcset="img/editor-hero-960.webp 960w, img/editor-hero-1440.webp 1440w" sizes="(min-width: 900px) 56vw, 100vw" width="1440" height="900" fetchpriority="high" alt="Het ontwerpscherm van de editor met een ontwerp voor de Model 3: links de tools, in het midden de wrap, rechts de lagen.">
+        </figure>
       </div>
     </section>
 

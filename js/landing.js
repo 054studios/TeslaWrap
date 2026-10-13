@@ -66,7 +66,7 @@ function modelCard(m) {
   return `<a class="model-card" href="/ontwerp/?model=${encodeURIComponent(m.id)}">
     <span class="sil-wrap"><canvas data-sil="${esc(m.id)}" aria-hidden="true"></canvas></span>
     <span class="model-name">${esc(t(m.name))}</span>
-    <span class="model-meta mono">${esc(meta)}</span>
+    <span class="model-meta">${esc(meta)}</span>
   </a>`;
 }
 

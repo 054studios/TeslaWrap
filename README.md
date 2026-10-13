@@ -2,7 +2,7 @@
 
 Ontwerp je eigen Tesla-wrap in de browser en download hem als PNG, klaar voor de Tesla-app.
 
-- De startpagina staat op `/`, met de galerij van voorbeelden.
+- De startpagina staat op `/`: kies een model, bekijk de voorbeelden en download ze als PNG.
 - De editor staat op `/ontwerp/`.
 
 Plan en keuzes staan in [PLAN.md](PLAN.md). Ideeën voor later staan in [IDEEN.md](IDEEN.md).
@@ -19,9 +19,11 @@ De editor heeft drie stappen, bovenaan de pagina:
 
 Elk ontwerp wordt automatisch bewaard in de browser (IndexedDB). Op een ander apparaat of in een andere browser zie je je ontwerpen niet. Accounts komen later (zie [IDEEN.md](IDEEN.md)).
 
-### Voorbeelden uit de galerij
+### Voorbeelden en downloads
 
-Op de startpagina staan voorbeelden met een filter per model. Met **Openen en aanpassen** krijg je een eigen kopie in je lijst met ontwerpen; het voorbeeld zelf verandert niet.
+De startpagina begint met de autokeuze: kies een van de twaalf modellen, en je gaat meteen naar de editor met dat model klaar. Daaronder staat de galerij. Per auto kies je een model en zie je tien ontwerpen.
+
+Met **Download PNG** download je een ontwerp als bestand voor de Tesla-app: 1024 × 1024 px, of 1024 × 768 px voor de Cybertruck, onder de 1 MB. De bestandsnaam is `wrap_<code>_<nn>.png`. Met **Openen en aanpassen** krijg je een eigen kopie in je lijst met ontwerpen; het voorbeeld zelf verandert niet.
 
 ### Foto's
 
@@ -79,7 +81,8 @@ Ga daarna naar http://localhost:8000 (startpagina) of http://localhost:8000/ontw
 
 ## Structuur
 
-- `index.html`, `css/landing.css`, `js/landing.js`: de startpagina met galerij, hoe het werkt en voordelen.
+- `index.html`, `css/landing.css`, `js/landing.js`: de startpagina met de autokeuze, de galerij, hoe het werkt, voordelen en vragen.
+- `fonts/`: Geist en Geist Mono, zelf gehost. Licentie: `fonts/LICENSE-Geist.txt` (SIL Open Font License).
 - `ontwerp/index.html`, `css/style.css`: de editor, met de stappen en de lijst met ontwerpen.
 - `js/app.js`: stappen, ontwerpen, gereedschap, zoomen, symmetrie, lagen, project, sneltoetsen en de exportdialoog.
 - `js/store.js`: ontwerpen in IndexedDB (de lijst en de inhoud).
@@ -93,14 +96,19 @@ Ga daarna naar http://localhost:8000 (startpagina) of http://localhost:8000/ontw
 - `js/model.js`, `js/util.js`: geschiedenis (ongedaan maken) en hulpfuncties.
 - `assets/templates/index.json`: lijst met modellen en groepen.
 - `assets/templates/<model>/`: paneel-masker (`mask.png`) en paneelgegevens (`panels.json`): naam, spiegelas en spiegelpaneel per paneel.
-- `voorbeelden/`: de voorbeeldontwerpen voor de galerij. `index.json` is de lijst, `<id>.json` het projectbestand, `<id>.png` de afbeelding (1024 px) en `<id>-512.png` de miniatuur.
-- `scripts/build_examples.py`: maakt de projectbestanden van de voorbeelden.
+- `voorbeelden/`: de voorbeeldontwerpen voor de galerij, tien per model. `index.json` is de lijst, `<id>.json` het projectbestand (`<id>` is `<model>-<nn>`), `<id>.png` de Tesla-klare PNG op sjabloonformaat en `<id>-512.png` de miniatuur.
+- `scripts/build_examples.py`: maakt de 120 voorbeeldontwerpen (tien per model), de lijst en de miniaturen.
+- `scripts/render_examples.js`: exporteert de voorbeelden met de editor zelf, zodat elke PNG precies is wat de editor exporteert.
 - `scripts/build_template.py`: maakt een masker uit een sjabloonafbeelding.
 
-## Voorbeeld toevoegen
+## Voorbeelden maken en vernieuwen
 
-1. Voeg een voorbeeld toe aan `EXAMPLES` in `scripts/build_examples.py` en draai `python3 scripts/build_examples.py`. Dat schrijft `voorbeelden/<id>.json` en de lijst `voorbeelden/index.json`.
-2. Maak de afbeeldingen: open `/ontwerp/`, kies *Project openen* en kies `voorbeelden/<id>.json`. Exporteer de PNG en sla hem op als `voorbeelden/<id>.png`. Maak daarna een miniatuur van 512 px breed als `voorbeelden/<id>-512.png`.
+De tien ontwerpfamilies staan in `scripts/build_examples.py` (`FAMILIES`). Elk ontwerp heeft een vaste seed, zodat dezelfde invoer altijd dezelfde ontwerpen geeft. Vanuit de repo-root (het script heeft Pillow nodig: `pip install pillow`):
+
+1. `python3 scripts/build_examples.py`: maakt de projectbestanden `voorbeelden/<model>-<nn>.json` en de lijst `voorbeelden/index.json`.
+2. Start de server (`python3 -m http.server 8000 --bind 127.0.0.1`) en render de PNG's met de editor: `NODE_PATH=$(npm root -g) node scripts/render_examples.js`. Je kunt er id's achter zetten om alleen die te maken.
+3. `python3 scripts/build_examples.py --thumbs`: maakt de miniaturen van 512 px en draait daarna de controles.
+4. `python3 scripts/build_examples.py --check`: alleen de controles (afmeting, bestandsgrootte, downloadnamen en dat geen twee ontwerpen gelijk zijn).
 
 Een voorbeeld dat in de editor is geëxporteerd, is pixel voor pixel gelijk aan wat de galerij toont.
 

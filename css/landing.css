@@ -1,19 +1,63 @@
-/* Startpagina: donker antraciet, één rode accent, Geist. Alleen transform en opacity bewegen. */
+/* Geist en Geist Mono, zelf gehost (SIL Open Font License, zie fonts/LICENSE-Geist.txt). */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/geist-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/geist-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/geist-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/geist-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/geist-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/geist-mono-latin-500-normal.woff2") format("woff2");
+}
+
+/* Startpagina: echt antraciet, één rode accent (alleen actie, focus en één moment), Geist.
+   Beweging is kort en zacht: transform en opacity, geen transition: all. */
 :root {
   color-scheme: dark;
-  --bg: #0f1217;
-  --surface: #161b22;
-  --surface-2: #1d232c;
-  --line: #2a323d;
-  --line-strong: #3a4350;
-  --text: #e7ecf2;
-  --text-2: #b8c0cc;
-  --muted: #8a94a3;
-  --accent: #d24b43;
-  --accent-hover: #e05a52;
+  --bg: #181b21;
+  --surface: #1f232b;
+  --surface-2: #272c36;
+  --line: #323845;
+  --line-strong: #414857;
+  --text: #eef1f5;
+  --text-2: #c3cad5;
+  --muted: #9aa3b2;
+  --accent: #d1463e;
+  --accent-hover: #cc3931;
   --r-s: 8px;
   --r-m: 12px;
-  --r-l: 16px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -24,16 +68,20 @@
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--line-strong) var(--bg);
 }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 400 16px/1.55 Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 400 16px/1.6 Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(209, 70, 62, 0.35);
 }
 
 h1,
@@ -43,11 +91,13 @@ h4 {
   margin: 0;
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.12;
+  line-height: 1.08;
+  text-wrap: balance;
 }
 
 p {
   margin: 0;
+  text-wrap: pretty;
 }
 
 img {
@@ -57,6 +107,12 @@ img {
 
 a {
   color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+select {
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
@@ -65,33 +121,29 @@ a {
   border-radius: 4px;
 }
 
-.mono {
-  font-family: "Geist Mono", ui-monospace, monospace;
-}
-
 .muted {
   color: var(--muted);
 }
 
 .small {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .wrap {
-  width: min(1120px, 100% - 40px);
+  width: min(1200px, 100% - 48px);
   margin: 0 auto;
 }
 
 .narrow {
-  width: min(760px, 100% - 40px);
+  width: min(760px, 100% - 48px);
 }
 
 .skip-link {
   position: absolute;
   left: 16px;
-  top: -48px;
+  top: -56px;
   z-index: 100;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: var(--r-s);
   background: var(--text);
   color: var(--bg);
@@ -109,8 +161,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(15, 18, 23, 0.86);
-  backdrop-filter: blur(12px);
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 
@@ -118,7 +169,7 @@ a {
   display: flex;
   align-items: center;
   gap: 24px;
-  min-height: 64px;
+  min-height: 68px;
 }
 
 .brand {
@@ -147,10 +198,13 @@ a {
 }
 
 .site-nav a {
-  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
   border-radius: var(--r-s);
   color: var(--text-2);
-  font-size: 14px;
+  font-size: 15px;
   text-decoration: none;
   transition: color 0.15s ease, background-color 0.15s ease;
 }
@@ -163,7 +217,7 @@ a {
 .head-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* --- knoppen ------------------------------------------------------------- */
@@ -173,17 +227,17 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 44px;
+  padding: 0 20px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-s);
   background: var(--surface-2);
   color: var(--text);
-  font: 500 14px/1 Geist, system-ui, sans-serif;
+  font: 500 15px/1 Geist, system-ui, sans-serif;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s var(--ease-out);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.16s var(--ease-out);
 }
 
 .btn:hover {
@@ -191,7 +245,7 @@ a {
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .btn.primary {
@@ -201,8 +255,8 @@ a {
 }
 
 .btn.primary:hover {
-  background: var(--accent-hover);
   border-color: var(--accent-hover);
+  background: var(--accent-hover);
 }
 
 .btn.quiet {
@@ -210,76 +264,84 @@ a {
 }
 
 .btn.big {
-  min-height: 52px;
-  padding: 0 22px;
-  font-size: 16px;
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 17px;
 }
 
 .btn.small {
-  min-height: 36px;
-  padding: 0 12px;
-  font-size: 13px;
+  padding: 0 16px;
+  font-size: 14px;
 }
 
 .lang-select {
   flex-shrink: 0;
-  height: 36px;
-  max-width: 112px;
-  padding: 0 6px;
+  height: 44px;
+  max-width: 120px;
+  padding: 0 8px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-s);
   background: var(--surface-2);
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
 }
 
 /* --- hero ---------------------------------------------------------------- */
 
 .hero {
-  padding: 96px 0 72px;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 68px);
+  min-height: calc(100svh - 68px);
+  padding: 64px 0;
   border-bottom: 1px solid var(--line);
 }
 
-.eyebrow {
-  display: inline-flex;
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.35fr);
+  gap: 56px;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
-.eyebrow::before {
-  content: "";
-  width: 18px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
+.hero-copy {
+  display: grid;
+  gap: 24px;
+}
+
+.hero-shot {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-m);
+  background: var(--surface);
+}
+
+.hero-shot img {
+  width: 100%;
+  height: auto;
 }
 
 .hero h1 {
-  max-width: 14ch;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1.02;
+  max-width: 16ch;
+  font-size: clamp(2.5rem, 4.6vw, 3.75rem);
+  line-height: 1.04;
 }
 
 .lead {
-  max-width: 52ch;
-  margin-top: 20px;
+  max-width: 48ch;
   color: var(--text-2);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  line-height: 1.5;
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: 16px;
 }
 
 /* --- secties ------------------------------------------------------------- */
@@ -296,7 +358,7 @@ a {
 }
 
 .section-head h2 {
-  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  font-size: clamp(2rem, 4vw, 3rem);
 }
 
 .section-head p {
@@ -308,48 +370,43 @@ a {
 
 .model-groups {
   display: grid;
-  gap: 40px;
+  gap: 48px;
 }
 
 .model-group h3 {
-  margin-bottom: 14px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin-bottom: 16px;
+  color: var(--text-2);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+  gap: 16px;
 }
 
 .model-card {
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--r-m);
   background: var(--surface);
   text-decoration: none;
-  transition: border-color 0.2s var(--ease-out), transform 0.2s var(--ease-out), background-color 0.2s var(--ease-out);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .model-card:hover {
-  transform: translateY(-2px);
   border-color: var(--line-strong);
   background: var(--surface-2);
 }
 
-.model-card:active {
-  transform: scale(0.99);
-}
-
 .sil-wrap {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 120px;
 }
 
@@ -367,7 +424,8 @@ a {
 
 .model-meta {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- galerij ------------------------------------------------------------- */
@@ -376,21 +434,21 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .variant-filters {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .chip {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 16px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   background: transparent;
   color: var(--text-2);
-  font: 500 13px/1 Geist, system-ui, sans-serif;
+  font: 500 14px/1 Geist, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
@@ -407,7 +465,7 @@ a {
 }
 
 .gallery-grid {
-  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .design-card {
@@ -417,11 +475,7 @@ a {
   border: 1px solid var(--line);
   border-radius: var(--r-m);
   background: var(--surface);
-  transition: border-color 0.2s var(--ease-out);
-}
-
-.design-card:hover {
-  border-color: var(--line-strong);
+  transition: border-color 0.15s ease;
 }
 
 .design-thumb {
@@ -438,18 +492,18 @@ a {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px 16px;
+  gap: 8px;
+  padding: 16px;
 }
 
 .design-body h4 {
-  font-size: 16px;
+  font-size: 1.25rem;
 }
 
 .design-body p {
   color: var(--text-2);
-  font-size: 13.5px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .design-actions {
@@ -469,29 +523,30 @@ a {
   margin: 0;
   padding: 0;
   list-style: none;
-  counter-reset: none;
 }
 
 .how li {
   display: grid;
-  gap: 10px;
-  padding-top: 20px;
+  gap: 12px;
+  padding-top: 24px;
   border-top: 1px solid var(--line-strong);
 }
 
 .num {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--surface-2);
   color: var(--accent);
-  font: 500 14px/1 "Geist Mono", ui-monospace, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .how strong {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
@@ -504,18 +559,18 @@ a {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px 40px;
+  gap: 40px 48px;
 }
 
 .features-grid article {
   display: grid;
   gap: 8px;
-  padding-top: 20px;
+  padding-top: 24px;
   border-top: 1px solid var(--line);
 }
 
 .features-grid h3 {
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 
 .features-grid p {
@@ -538,8 +593,9 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 0;
-  font-size: 1.0625rem;
+  min-height: 56px;
+  padding: 16px 0;
+  font-size: 1.125rem;
   font-weight: 600;
   cursor: pointer;
   list-style: none;
@@ -553,7 +609,9 @@ a {
   content: "+";
   flex-shrink: 0;
   color: var(--muted);
-  font: 400 22px/1 "Geist Mono", ui-monospace, monospace;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
   transition: transform 0.2s var(--ease-out);
 }
 
@@ -562,7 +620,7 @@ a {
 }
 
 .faq details p {
-  padding: 0 0 22px;
+  padding: 0 0 24px;
   max-width: 62ch;
   color: var(--text-2);
 }
@@ -584,7 +642,7 @@ a {
 }
 
 .closing h2 {
-  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  font-size: clamp(2rem, 4vw, 3rem);
 }
 
 .closing p {
@@ -597,14 +655,14 @@ a {
 .site-foot {
   padding: 32px 0 48px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .site-foot a {
   color: var(--text-2);
 }
 
-/* --- telefoon en tablet -------------------------------------------------- */
+/* --- tablet en telefoon -------------------------------------------------- */
 
 @media (max-width: 900px) {
   .features-grid,
@@ -617,13 +675,21 @@ a {
   }
 }
 
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
 @media (max-width: 760px) {
   .site-nav {
     display: none;
   }
 
   .hero {
-    padding: 56px 0 48px;
+    min-height: 0;
+    padding: 48px 0;
   }
 
   .section,
@@ -644,11 +710,11 @@ a {
 
   .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 12px;
   }
 
   .model-card {
-    padding: 10px;
+    padding: 12px;
   }
 
   .sil-wrap {
@@ -660,14 +726,57 @@ a {
   }
 }
 
+/* Op heel smalle schermen past de kop-knop naast de taalkiezer niet; de hero heeft dezelfde knop. */
+@media (max-width: 400px) {
+  .head-actions .btn.primary {
+    display: none;
+  }
+
+  .lang-select {
+    max-width: 104px;
+  }
+}
+
+/* Hover beweegt alleen van kleur, en alleen met een echte muis. */
+@media (hover: hover) and (pointer: fine) {
+  .site-nav a:hover,
+  .chip:hover,
+  .model-card:hover,
+  .design-card:hover {
+    transition-duration: 0.15s;
+  }
+}
+
+/* Minder beweging, niet geen feedback: geen verschuiving of schaal, wel korte kleurwissels. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
+  .btn:active {
+    transform: none;
+  }
+
+  .faq summary::after {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-head {
+    background: var(--bg);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --line: #4a5160;
+    --muted: #b4bcc8;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }

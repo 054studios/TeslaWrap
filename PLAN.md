@@ -16,12 +16,12 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 - **Statische site** (HTML, CSS, JavaScript), zonder build-stap en zonder externe libraries.
 - **Alles in de browser.** Foto's verlaten het apparaat niet. Ontwerpen worden bewaard in de browser (IndexedDB), zodat ze na herladen terugkomen. Accounts en een gedeelde galerij komen later, met Supabase.
 - **Officiële sjablonen.** De twaalf Tesla-sjablonen komen uit [teslamotors/custom-wraps](https://github.com/teslamotors/custom-wraps). De repo bevat per model alleen het masker: per pixel het paneel-id, gemaakt door `scripts/build_template.py`. Klikken, tekenen en exporteren gebruiken dezelfde vormen.
-- **Twee pagina's.** De landingspagina staat op `/` en toont de galerij, hoe het werkt en de voordelen. De editor staat op `/ontwerp/`.
+- **Twee pagina's.** De landingspagina staat op `/`: de autokeuze, de galerij met tien ontwerpen per model, hoe het werkt, voordelen en vragen. De editor staat op `/ontwerp/`.
 - **Pc en mobiel.** Pointer Events voor muis, touch en pen.
 - **Talen.** Nederlands is de bron: de Nederlandse tekst is de sleutel in `js/i18n/<taal>.json`. Een tekst zonder vertaling blijft Nederlands. Vertalingen staan in de repo, dus er is geen build-stap of extern bestand nodig.
 - **Drie stappen bovenaan**: model, ontwerpen, exporteren. Zo is altijd duidelijk waar je bent en wat de volgende stap is.
 - **Layout.** Breed scherm: gereedschap links, canvas midden, eigenschappen en lagen rechts. Smal (< 900 px): gereedschap als vaste balk onderaan. Eén vinger tekent, twee vingers zoomen en verschuiven.
-- **Donker thema.** Antraciet in plaats van zwart, één accentkleur (rood) en het lettertype Geist. De landingspagina gebruikt dezelfde kleuren.
+- **Donker thema.** Antraciet in plaats van zwart, één accentkleur (rood) en het lettertype Geist. De landingspagina gebruikt dezelfde kleuren. Geist staat in de repo (`fonts/`), zodat de site geen lettertypen bij derden ophaalt.
 
 ## Functies
 
@@ -37,7 +37,7 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 10. **Lagen**: zichtbaar aan of uit, volgorde, verwijderen. Ctrl+Z en Ctrl+Y.
 11. **Meerdere ontwerpen**: een lijst op de startpagina, met miniatuur. Openen, dupliceren, hernoemen en verwijderen. Alles wordt automatisch bewaard in de browser. Een oud enkel ontwerp wordt eenmalig in de lijst gezet.
 12. **Project** opslaan en openen als JSON, met model, naam, lagen, foto's en stickers. Openen maakt een nieuw ontwerp in je lijst.
-13. **Galerij** op de landingspagina: voorbeelden met een filter per model. "Openen en aanpassen" maakt een eigen kopie.
+13. **Galerij** op de landingspagina: per auto kies je een model en zie je tien ontwerpen. Met **Download PNG** download je de Tesla-klare PNG; "Openen en aanpassen" maakt een eigen kopie.
 14. **Export**: controles op formaat, zwart en grootte. Boven 1 MB een palet-PNG die past. Op telefoons die bestanden kunnen delen: een knop om te delen of op te slaan.
 15. **Talen**: Nederlands, English, Deutsch, Français en Türkçe, met een kiezer in de kop. Zonder eigen keuze volgt de site het land, dan de browser, en anders Engels. Alle keuzes worden onthouden.
 
@@ -45,7 +45,7 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 
 Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests staan niet in de repo.
 
-- **Landingspagina**: hero, galerij met filter, een voorbeeld openen (de export is gelijk aan de galerij-afbeelding), telefoon zonder horizontale scroll.
+- **Landingspagina**: hero (editor in beeld, primaire knop naar de editor, past in het eerste scherm), autokeuze naar de editor, galerij met tien per model en downloads, telefoon en 320 px zonder horizontale scroll.
 - **Meerdere ontwerpen**: aanmaken per model, openen, dupliceren, hernoemen, verwijderen, herladen, een voorbeeld via de link, een oud enkel ontwerp overzetten, telefoon.
 - **Startpagina**: twaalf modelkaarten, stap 1 actief, exporteren uitgeschakeld tot een model is gekozen.
 - **Zoomen**: knoppen, scrollwiel en "Naar gekozen paneel". Op de telefoon: twee vingers.
@@ -66,6 +66,7 @@ Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests sta
 - **Een nieuw model of projectbestand maakt een nieuw ontwerp.** Er is geen bevestiging meer nodig: het vorige ontwerp blijft in de lijst staan.
 - **Geen backend nu.** De galerij bevat alleen voorbeelden van ons. Een gedeelde galerij komt later, met Supabase.
 - **Taal uit het land.** De eigen keuze van de bezoeker gaat altijd voor. Het land komt van Vercel (`api/country.js`). Lokaal bestaat dat niet; dan geldt de browser.
+- **Landing eerst een autokeuze.** De editor is het hoofdonderdeel. De landing leidt daarom via de autokeuze direct naar de editor met dat model.
 
 ## Niet getest
 
