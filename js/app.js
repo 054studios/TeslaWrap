@@ -1,12 +1,12 @@
-// Tesla Wrap Ontwerper: state, gereedschap, lagen, project en export.
+// Tesla Wrap Ontwerper: state, modelkeuze, gereedschap, lagen, project en export.
 import { loadTemplate, idAt, boundsOf } from './template.js';
 import { renderWrap, renderOverlay, ensurePaint, drawStroke, drawSegment, hitLayer, FONTS } from './render.js';
 import { History, copyLayers } from './model.js';
 import { exportWrap } from './export.js';
 import { makeCanvas, loadImage, download, stamp, esc, clamp, newId } from './util.js';
 
-const TEMPLATE_DIR = 'assets/templates/voyager';
-const S = 1024;
+const MODELS_URL = 'assets/templates/index.json';
+const MODEL_KEY = 'tesla-wrap-model';
 const MAX_PHOTO_SIDE = 2048;
 const LABELS = { fill: 'Kleurvlak', image: 'Foto', paint: 'Tekening', text: 'Tekst' };
 const TOOL_HINTS = {
@@ -22,6 +22,8 @@ const $ = (sel) => document.querySelector(sel);
 const el = {
   overlay: $('#overlay'),
   wrap: $('#wrap'),
+  stage: $('#stage'),
+  model: $('#model'),
   status: $('#status'),
   hint: $('#hint'),
   props: $('#props'),
@@ -40,14 +42,16 @@ const el = {
   dialog: $('#export-dialog'),
 };
 
+// Het canvas past zich aan het gekozen sjabloon aan: 1024 × 1024, of 1024 × 768 voor de Cybertruck.
 const scene = {
-  size: S,
+  w: 1024,
+  h: 1024,
   tpl: null,
   layers: [],
   assets: new Map(), // id -> { id, img, w, h, dataUrl }
   paint: new Map(), // laag-id -> canvas van de tekenlaag (afgeleid van de streken)
-  work: makeCanvas(S),
-  tmp: makeCanvas(S),
+  work: makeCanvas(1024),
+  tmp: makeCanvas(1024),
   out: el.wrap,
   selPanels: new Set(),
   selLayerId: null,
@@ -58,6 +62,9 @@ const ui = { tool: 'select', outlines: true, labels: false };
 const history = new History();
 const pointers = new Map();
 const counters = { fill: 0, image: 0, paint: 0, text: 0 };
+const templates = new Map(); // model-id -> geladen sjabloon (één keer laden)
+let models = [];
+let current = null; // het gekozen model uit index.json
 let drag = null;
 let frame = 0;
 let photoTarget = null; // laag die een nieuwe foto krijgt; null = nieuwe fotolaag
@@ -88,7 +95,7 @@ const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
 function toCanvas(e) {
   const r = el.overlay.getBoundingClientRect();
-  return { x: ((e.clientX - r.left) * S) / r.width, y: ((e.clientY - r.top) * S) / r.height };
+  return { x: ((e.clientX - r.left) * scene.w) / r.width, y: ((e.clientY - r.top) * scene.h) / r.height };
 }
 
 // Nieuwe laag komt boven de geselecteerde laag, of bovenaan.
@@ -189,6 +196,74 @@ function setTool(name) {
   updateStatus();
 }
 
+// --- modellen --------------------------------------------------------------------
+
+async function loadModelList() {
+  const r = await fetch(MODELS_URL);
+  if (!r.ok) throw new Error(`modellijst niet gevonden (${r.status})`);
+  return r.json();
+}
+
+function fillModelPicker(data) {
+  const groups = new Map();
+  for (const m of data.models) {
+    if (!groups.has(m.group)) {
+      const g = document.createElement('optgroup');
+      g.label = m.group;
+      groups.set(m.group, g);
+      el.model.append(g);
+    }
+    groups.get(m.group).append(new Option(m.name, m.id));
+  }
+}
+
+// Laadt een model: sjabloon, canvasafmeting en (tenzij keepDoc) een lege lagenlijst.
+async function selectModel(id, { keepDoc = false } = {}) {
+  const entry = models.find((m) => m.id === id);
+  if (!entry) throw new Error(`onbekend model: ${id}`);
+  let tpl = templates.get(id);
+  if (!tpl) {
+    tpl = await loadTemplate(`assets/templates/${id}`);
+    templates.set(id, tpl);
+  }
+  current = entry;
+  scene.tpl = tpl;
+  scene.w = tpl.w;
+  scene.h = tpl.h;
+  for (const c of [scene.work, scene.tmp, el.wrap, el.overlay]) {
+    c.width = tpl.w;
+    c.height = tpl.h;
+  }
+  el.stage.style.aspectRatio = `${tpl.w} / ${tpl.h}`;
+  el.model.value = id;
+  scene.tint = null;
+  scene.tintKey = null;
+  try {
+    localStorage.setItem(MODEL_KEY, id);
+  } catch {
+    // Geen opslag beschikbaar (bijvoorbeeld privé-modus): het model wordt dan niet onthouden.
+  }
+  if (keepDoc) refresh();
+  else resetDocument();
+}
+
+async function onModelChange() {
+  if (!current) return;
+  const id = el.model.value;
+  if (id === current.id) return;
+  const hasContent = history.canUndo || scene.layers.length > 1;
+  if (hasContent && !confirm('Een ander model wisselt het sjabloon. Je huidige ontwerp wordt dan gewist. Doorgaan?')) {
+    el.model.value = current.id;
+    return;
+  }
+  try {
+    await selectModel(id);
+  } catch (err) {
+    el.model.value = current.id;
+    alert(`Model laden mislukt: ${err.message}`);
+  }
+}
+
 // --- lagen -----------------------------------------------------------------------
 
 function addFill() {
@@ -244,6 +319,7 @@ function moveLayer(id, dir) {
   commit();
 }
 
+// Leeg ontwerp voor het gekozen model. Lagen en panelen zijn per model, dus ook de selectie wordt gewist.
 function resetDocument() {
   scene.layers = [baseLayer()];
   scene.assets.clear();
@@ -641,8 +717,8 @@ async function onPhotoPicked(e) {
         opacity: 1,
         panels: scopeNow(),
         asset: asset.id,
-        x: S / 2,
-        y: S / 2,
+        x: scene.w / 2,
+        y: scene.h / 2,
         rot: 0,
         zoom: 1,
         base: 1,
@@ -662,7 +738,7 @@ function saveProject() {
   for (const l of scene.layers) {
     if (l.asset && scene.assets.has(l.asset)) assets[l.asset] = { dataUrl: scene.assets.get(l.asset).dataUrl };
   }
-  const data = { format: 'tesla-wrap-project', version: 1, template: TEMPLATE_DIR, layers: scene.layers, assets };
+  const data = { format: 'tesla-wrap-project', version: 2, model: current.id, layers: scene.layers, assets };
   download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `tesla-wrap-project-${stamp()}.json`);
 }
 
@@ -674,6 +750,11 @@ async function loadProjectFile(e) {
     const data = JSON.parse(await file.text());
     if (data.format !== 'tesla-wrap-project' || !Array.isArray(data.layers)) {
       throw new Error('dit is geen Tesla wrap-project');
+    }
+    // Oudere projecten noemden het sjabloon met pad (assets/templates/voyager): de laatste naam is het model.
+    const wanted = data.model || String(data.template || '').split('/').pop();
+    if (wanted && wanted !== current.id && models.some((m) => m.id === wanted)) {
+      await selectModel(wanted, { keepDoc: true });
     }
     scene.assets.clear();
     for (const [id, a] of Object.entries(data.assets || {})) {
@@ -702,14 +783,22 @@ async function openExport() {
   }
 }
 
+// Bestandsnaam: maximaal 30 tekens, alleen letters, cijfers, streepjes en underscores (Tesla-eis).
+function exportName() {
+  const d = new Date();
+  const hhmm = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+  return `wrap_${current.code}_${hhmm}.png`;
+}
+
 function showExport(result) {
   if (exportUrl) URL.revokeObjectURL(exportUrl);
   exportUrl = URL.createObjectURL(result.blob);
-  const name = `tesla-wrap-${stamp()}.png`;
+  const name = exportName();
   const ok = result.checks.every((c) => c.ok);
 
   $('#export-preview').src = exportUrl;
-  $('#export-info').textContent = `${result.width} × ${result.height} px · ${(result.blob.size / 1024).toFixed(0)} KB · ${result.mode}`;
+  $('#export-info').textContent =
+    `${current.name} · ${result.width} × ${result.height} px · ${(result.blob.size / 1024).toFixed(0)} KB · ${result.mode}`;
   $('#export-checks').innerHTML = result.checks
     .map((c) => `<li class="${c.ok ? 'ok' : 'fail'}"><span>${c.ok ? '✓' : '✗'}</span>${esc(c.label)}</li>`)
     .join('');
@@ -757,6 +846,7 @@ function onKey(e) {
 function bindEvents() {
   document.querySelectorAll('[data-tool]').forEach((b) => b.addEventListener('click', () => setTool(b.dataset.tool)));
 
+  el.model.addEventListener('change', onModelChange);
   $('#add-fill').addEventListener('click', addFill);
   $('#add-photo').addEventListener('click', () => {
     photoTarget = null;
@@ -817,14 +907,20 @@ async function init() {
   el.sizeOut.textContent = el.size.value;
   setTool('select');
   try {
-    scene.tpl = await loadTemplate(TEMPLATE_DIR);
+    const data = await loadModelList();
+    models = data.models;
+    fillModelPicker(data);
+    let start = data.default;
+    try {
+      const saved = localStorage.getItem(MODEL_KEY);
+      if (saved && models.some((m) => m.id === saved)) start = saved;
+    } catch {
+      // Geen opslag beschikbaar: het standaardmodel wordt gekozen.
+    }
+    await selectModel(start);
   } catch (err) {
-    el.status.textContent = `Sjabloon laden mislukt: ${err.message}`;
-    return;
+    el.status.textContent = `Laden mislukt: ${err.message}`;
   }
-  scene.layers = [baseLayer()];
-  history.reset(copyLayers(scene.layers));
-  refresh();
 }
 
 init();

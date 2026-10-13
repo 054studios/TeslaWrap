@@ -1,0 +1,18 @@
+{
+  "default": "model3-2024-base",
+  "models": [
+    { "id": "model3", "name": "Model 3 (vóór 2024)", "group": "Model 3", "code": "m3-old" },
+    { "id": "model3-2024-base", "name": "Model 3 (2024+) Standard & Premium", "group": "Model 3", "code": "m3-24-std" },
+    { "id": "model3-2024-performance", "name": "Model 3 (2024+) Performance", "group": "Model 3", "code": "m3-24-perf" },
+    { "id": "modely", "name": "Model Y (vóór 2025)", "group": "Model Y", "code": "my-old" },
+    { "id": "modely-l", "name": "Model Y L", "group": "Model Y", "code": "my-l" },
+    { "id": "modely-2025-base", "name": "Model Y (2025+) Standard", "group": "Model Y", "code": "my-25-std" },
+    { "id": "modely-2025-premium", "name": "Model Y (2025+) Premium", "group": "Model Y", "code": "my-25-prem" },
+    { "id": "modely-2025-performance", "name": "Model Y (2025+) Performance", "group": "Model Y", "code": "my-25-perf" },
+    { "id": "models-2021", "name": "Model S (2021+)", "group": "Model S", "code": "ms-21" },
+    { "id": "models-2025-plaid", "name": "Model S (2025+) Plaid", "group": "Model S", "code": "ms-25-plaid" },
+    { "id": "modelx-2021", "name": "Model X (2021+)", "group": "Model X", "code": "mx-21" },
+    { "id": "cybertruck", "name": "Cybertruck (1024 × 768)", "group": "Cybertruck", "code": "ct" },
+    { "id": "voyager", "name": "Voyager (eigen sjabloon)", "group": "Overig", "code": "voyager" }
+  ]
+}

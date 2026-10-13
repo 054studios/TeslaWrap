@@ -1,5 +1,5 @@
-// Tekent de lagen op het 1024 × 1024 canvas. Dezelfde code levert het voorbeeld en de export,
-// dus wat je ziet is wat je downloadt.
+// Tekent de lagen op het canvas van het gekozen sjabloon. Dezelfde code levert het voorbeeld
+// en de export, dus wat je ziet is wat je downloadt.
 import { makeCanvas } from './util.js';
 import { maskFor } from './template.js';
 
@@ -50,7 +50,7 @@ export function drawSegment(ctx, s, x0, y0, x1, y1) {
 export function ensurePaint(scene, layer) {
   let canvas = scene.paint.get(layer.id);
   if (!canvas) {
-    canvas = makeCanvas(scene.size);
+    canvas = makeCanvas(scene.w, scene.h);
     const ctx = canvas.getContext('2d');
     for (const s of layer.strokes) drawStroke(ctx, s);
     scene.paint.set(layer.id, canvas);
@@ -106,9 +106,10 @@ export function hitLayer(scene, x, y) {
 function fillStyleOf(scene, layer, c) {
   if (!layer.gradient) return layer.color;
   const a = (layer.angle * Math.PI) / 180;
-  const r = scene.size * 0.75;
-  const mid = scene.size / 2;
-  const g = c.createLinearGradient(mid - Math.cos(a) * r, mid - Math.sin(a) * r, mid + Math.cos(a) * r, mid + Math.sin(a) * r);
+  const r = Math.max(scene.w, scene.h) * 0.75;
+  const mx = scene.w / 2;
+  const my = scene.h / 2;
+  const g = c.createLinearGradient(mx - Math.cos(a) * r, my - Math.sin(a) * r, mx + Math.cos(a) * r, my + Math.sin(a) * r);
   g.addColorStop(0, layer.color);
   g.addColorStop(1, layer.color2);
   return g;
@@ -116,11 +117,10 @@ function fillStyleOf(scene, layer, c) {
 
 // Tekent de inhoud van één laag op c (zonder dekking en zonder paneelmasker).
 function drawContent(scene, layer, c) {
-  const S = scene.size;
   switch (layer.type) {
     case 'fill':
       c.fillStyle = fillStyleOf(scene, layer, c);
-      c.fillRect(0, 0, S, S);
+      c.fillRect(0, 0, scene.w, scene.h);
       break;
     case 'image': {
       const a = scene.assets.get(layer.asset);
@@ -151,43 +151,43 @@ function drawContent(scene, layer, c) {
   }
 }
 
-// Zet alle lagen samen en zet het resultaat op scene.out: zwart, met de wrap daarop, buiten de panelen zwart.
+// Zet alle lagen samen op scene.out: zwart, met de wrap daarop, en buiten de panelen zwart.
 export function renderWrap(scene) {
-  const { size: S, work, tmp, out } = scene;
-  const w = work.getContext('2d');
-  const t = tmp.getContext('2d');
+  const { w, h, work, tmp, out } = scene;
+  const wc = work.getContext('2d');
+  const tc = tmp.getContext('2d');
 
-  w.setTransform(1, 0, 0, 1, 0, 0);
-  w.globalAlpha = 1;
-  w.globalCompositeOperation = 'source-over';
-  w.clearRect(0, 0, S, S);
+  wc.setTransform(1, 0, 0, 1, 0, 0);
+  wc.globalAlpha = 1;
+  wc.globalCompositeOperation = 'source-over';
+  wc.clearRect(0, 0, w, h);
 
   for (const layer of scene.layers) {
     if (!layer.visible || layer.opacity <= 0) continue;
-    t.setTransform(1, 0, 0, 1, 0, 0);
-    t.globalAlpha = 1;
-    t.globalCompositeOperation = 'source-over';
-    t.clearRect(0, 0, S, S);
-    drawContent(scene, layer, t);
+    tc.setTransform(1, 0, 0, 1, 0, 0);
+    tc.globalAlpha = 1;
+    tc.globalCompositeOperation = 'source-over';
+    tc.clearRect(0, 0, w, h);
+    drawContent(scene, layer, tc);
     if (layer.panels) {
-      t.globalCompositeOperation = 'destination-in';
-      t.drawImage(maskFor(scene.tpl, layer.panels), 0, 0);
+      tc.globalCompositeOperation = 'destination-in';
+      tc.drawImage(maskFor(scene.tpl, layer.panels), 0, 0);
     }
-    w.globalAlpha = layer.opacity;
-    w.drawImage(tmp, 0, 0);
-    w.globalAlpha = 1;
+    wc.globalAlpha = layer.opacity;
+    wc.drawImage(tmp, 0, 0);
+    wc.globalAlpha = 1;
   }
 
   // Alles buiten de panelen weghalen en daarna op zwart zetten.
-  w.globalCompositeOperation = 'destination-in';
-  w.drawImage(maskFor(scene.tpl, null), 0, 0);
-  w.globalCompositeOperation = 'source-over';
+  wc.globalCompositeOperation = 'destination-in';
+  wc.drawImage(maskFor(scene.tpl, null), 0, 0);
+  wc.globalCompositeOperation = 'source-over';
 
   const o = out.getContext('2d');
   o.setTransform(1, 0, 0, 1, 0, 0);
   o.globalAlpha = 1;
   o.fillStyle = '#000';
-  o.fillRect(0, 0, S, S);
+  o.fillRect(0, 0, w, h);
   o.drawImage(work, 0, 0);
   return out;
 }
@@ -198,10 +198,10 @@ function selectionTint(scene) {
   const ids = [...scene.selPanels].sort((a, b) => a - b);
   const key = ids.join(',');
   if (scene.tintKey !== key) {
-    const c = makeCanvas(scene.size);
+    const c = makeCanvas(scene.w, scene.h);
     const ctx = c.getContext('2d');
     ctx.fillStyle = 'rgba(47, 129, 247, 0.45)';
-    ctx.fillRect(0, 0, scene.size, scene.size);
+    ctx.fillRect(0, 0, scene.w, scene.h);
     ctx.globalCompositeOperation = 'destination-in';
     ctx.drawImage(maskFor(scene.tpl, ids), 0, 0);
     scene.tint = c;
@@ -240,10 +240,9 @@ function drawSelectionBox(scene, l, c) {
 }
 
 export function renderOverlay(scene, canvas, opts) {
-  const S = scene.size;
   const c = canvas.getContext('2d');
   c.setTransform(1, 0, 0, 1, 0, 0);
-  c.clearRect(0, 0, S, S);
+  c.clearRect(0, 0, scene.w, scene.h);
   if (opts.outlines) c.drawImage(scene.tpl.outline, 0, 0);
   if (scene.selPanels.size) c.drawImage(selectionTint(scene), 0, 0);
   if (opts.labels) drawLabels(scene, c);

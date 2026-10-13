@@ -2,15 +2,24 @@
 """Maakt het paneel-masker voor een Tesla wrap-sjabloon.
 
 Gebruik:
-  python3 scripts/build_template.py <sjabloon.jpg> <uitvoermap> [--name "Naam"] [--preview voorbeeld.png]
+  python3 scripts/build_template.py <sjabloon.png> <uitvoermap> [opties]
+
+Opties:
+  --name "Naam"       weergavenaam in panels.json (standaard: Sjabloon)
+  --size W H          schaal het sjabloon eerst naar deze afmeting (standaard: de eigen afmeting)
+  --threshold N       een pixel is beschrijfbaar bij luminantie > N en alpha >= 128 (standaard: 128)
+  --fill-holes        donkere gebieden die volledig binnen een paneel liggen, tellen ook als paneel
+  --min-area N        kleinere gebieden zijn ruis (standaard: 300 px)
+  --preview PAD.png   ter controle: de herkende panelen in kleur
 
 Uitvoer in <uitvoermap>:
-  mask.png     1024x1024 grijswaarden-PNG. Pixelwaarde = paneel-id (0 = buiten de panelen).
-  panels.json  Naam, oppervlakte, bounding box en middelpunt per paneel.
+  mask.png     Grijswaarden-PNG op de sjabloonafmeting. Pixelwaarde = paneel-id (0 = buiten de panelen).
+  panels.json  Naam, afmetingen en per paneel: naam, oppervlakte, bounding box en middelpunt.
 
-Het sjabloon wordt geschaald naar 1024x1024, zodat de paneelvormen exact
-overeenkomen met de Tesla-export. Alles met luminantie <= BG_THRESHOLD telt als
-zwarte achtergrond; ingesloten donkere details binnen een paneel worden meegenomen.
+Tesla-sjablonen (github.com/teslamotors/custom-wraps) hebben witte, beschrijfbare gebieden op een
+transparante of zwarte achtergrond. Gebruik daarvoor de standaardwaarden.
+Het Voyager-sjabloon is een donkere render zonder alpha. Gebruik daarvoor:
+  --size 1024 1024 --threshold 8 --fill-holes
 """
 import argparse
 import json
@@ -19,10 +28,6 @@ from collections import deque
 
 import numpy as np
 from PIL import Image, ImageDraw
-
-SIZE = 1024
-BG_THRESHOLD = 8   # luminantie (0-255) tot en met deze waarde = zwarte achtergrond
-MIN_AREA = 300     # kleinere vlekken zijn ruis en worden weggelaten
 
 
 def label(mask):
@@ -47,9 +52,9 @@ def label(mask):
     return np.array(lab, dtype=np.int32).reshape(h, w), n
 
 
-def position_name(cx, cy):
-    vert = "boven" if cy < SIZE / 3 else ("midden" if cy < 2 * SIZE / 3 else "onder")
-    horiz = "links" if cx < SIZE / 3 else ("midden" if cx < 2 * SIZE / 3 else "rechts")
+def position_name(cx, cy, w, h):
+    vert = "boven" if cy < h / 3 else ("midden" if cy < 2 * h / 3 else "onder")
+    horiz = "links" if cx < w / 3 else ("midden" if cx < 2 * w / 3 else "rechts")
     return f"{vert} {horiz}"
 
 
@@ -58,31 +63,39 @@ def main():
     ap.add_argument("src")
     ap.add_argument("outdir")
     ap.add_argument("--name", default="Sjabloon")
-    ap.add_argument("--preview", help="Optioneel: PNG met de herkende panelen ter controle")
+    ap.add_argument("--size", nargs=2, type=int, metavar=("W", "H"))
+    ap.add_argument("--threshold", type=int, default=128)
+    ap.add_argument("--fill-holes", action="store_true")
+    ap.add_argument("--min-area", type=int, default=300)
+    ap.add_argument("--preview")
     args = ap.parse_args()
 
-    gray = Image.open(args.src).convert("L").resize((SIZE, SIZE), Image.LANCZOS)
-    lum = np.asarray(gray)
+    im = Image.open(args.src).convert("RGBA")
+    if args.size:
+        im = im.resize(tuple(args.size), Image.LANCZOS)
+    w, h = im.size
+    rgba = np.asarray(im).astype(np.float32)
+    lum = 0.299 * rgba[..., 0] + 0.587 * rgba[..., 1] + 0.114 * rgba[..., 2]
+    paint = (rgba[..., 3] >= 128) & (lum > args.threshold)
 
-    panel = lum > BG_THRESHOLD
-    bg_labels, _ = label(~panel)
-    edge = np.unique(np.concatenate([bg_labels[0], bg_labels[-1], bg_labels[:, 0], bg_labels[:, -1]]))
-    outside = np.isin(bg_labels, edge[edge > 0])
-    enclosed = (~panel) & (~outside)
-    filled = panel | enclosed
+    if args.fill_holes:
+        bg_labels, _ = label(~paint)
+        edge = np.unique(np.concatenate([bg_labels[0], bg_labels[-1], bg_labels[:, 0], bg_labels[:, -1]]))
+        outside = np.isin(bg_labels, edge[edge > 0])
+        enclosed = (~paint) & (~outside)
+        print(f"ingesloten donkere gebieden dichtgemaakt als paneel: {label(enclosed)[1]}")
+        paint = paint | enclosed
 
-    hole_labels, hole_n = label(enclosed)
-    hole_sizes = np.bincount(hole_labels.ravel())[1:] if hole_n else []
-    print(f"ingesloten achtergrond-gebieden (dichtgemaakt als paneel): {hole_n}, grootste: {sorted(hole_sizes)[-5:] if hole_n else []}")
-
-    comp, n = label(filled)
+    comp, n = label(paint)
     sizes = np.bincount(comp.ravel(), minlength=n + 1)
     yy, xx = np.indices(comp.shape)
     cy = np.bincount(comp.ravel(), weights=yy.ravel(), minlength=n + 1) / np.maximum(sizes, 1)
     cx = np.bincount(comp.ravel(), weights=xx.ravel(), minlength=n + 1) / np.maximum(sizes, 1)
 
-    keep = [l for l in range(1, n + 1) if sizes[l] >= MIN_AREA]
+    keep = [l for l in range(1, n + 1) if sizes[l] >= args.min_area]
     keep.sort(key=lambda l: (round(cy[l] / 40), cx[l]))  # leesvolgorde: boven naar onder, links naar rechts
+    if not keep:
+        raise SystemExit("Geen paneel gevonden; controleer --threshold")
     if len(keep) > 255:
         raise SystemExit("Te veel panelen voor een 8-bit id-kaart")
 
@@ -92,28 +105,28 @@ def main():
         m = comp == l
         ids[m] = new_id
         ys, xs = np.nonzero(m)
-        bbox = [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
         panels.append({
             "id": new_id,
-            "name": f"Paneel {new_id}: {position_name(cx[l], cy[l])}",
+            "name": f"Paneel {new_id}: {position_name(cx[l], cy[l], w, h)}",
             "area": int(sizes[l]),
-            "bbox": bbox,
+            "bbox": [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1],
             "center": [round(float(cx[l]), 1), round(float(cy[l]), 1)],
         })
 
     os.makedirs(args.outdir, exist_ok=True)
     Image.fromarray(ids, mode="L").save(os.path.join(args.outdir, "mask.png"), optimize=True)
     with open(os.path.join(args.outdir, "panels.json"), "w", encoding="utf-8") as f:
-        json.dump({"name": args.name, "size": SIZE, "panels": panels}, f, ensure_ascii=False, indent=2)
+        json.dump({"name": args.name, "width": w, "height": h, "panels": panels}, f, ensure_ascii=False, indent=2)
 
-    print(f"{len(panels)} panelen geschreven naar {args.outdir}")
+    print(f"{len(panels)} panelen ({w} x {h}) geschreven naar {args.outdir}")
     for p in panels:
-        print(f"  {p['id']:>2} {p['name']:<28} oppervlakte={p['area']:>6} bbox={p['bbox']}")
+        print(f"  {p['id']:>2} {p['name']:<30} oppervlakte={p['area']:>6} bbox={p['bbox']}")
     edge_touch = ids[0].any() or ids[-1].any() or ids[:, 0].any() or ids[:, -1].any()
     print("raakt de rand van het canvas:", bool(edge_touch))
 
     if args.preview:
-        base = np.asarray(Image.open(args.src).convert("RGB").resize((SIZE, SIZE), Image.LANCZOS)).astype(np.float32)
+        flat = Image.alpha_composite(Image.new("RGBA", im.size, (0, 0, 0, 255)), im).convert("RGB")
+        base = np.asarray(flat).astype(np.float32)
         palette = np.array([(230, 25, 75), (60, 180, 75), (255, 225, 25), (0, 130, 200), (245, 130, 48),
                             (145, 30, 180), (70, 240, 240), (240, 50, 230), (210, 245, 60), (250, 190, 212)], np.float32)
         color = palette[ids.astype(np.int32) % len(palette)]

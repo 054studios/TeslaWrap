@@ -1,43 +1,39 @@
-// PNG-export voor de Tesla-app: 1024 × 1024 px, zwarte achtergrond, maximaal 1 MB.
+// PNG-export voor de Tesla-app: de afmeting van het sjabloon, zwart buiten de panelen, maximaal 1 MB.
 
 export const MAX_BYTES = 1_000_000;
 const PNG_SIGNATURE = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);
 
 // Maakt de PNG en controleert de eisen. Geeft { blob, width, height, mode, checks }.
 export async function exportWrap(canvas, tpl) {
-  const S = canvas.width;
-  const px = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, S, S).data;
+  const W = canvas.width;
+  const H = canvas.height;
+  const px = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
   const black = (i) => (px[i * 4] | px[i * 4 + 1] | px[i * 4 + 2]) === 0;
 
   let outsideBlack = true;
-  for (let i = 0; i < S * S && outsideBlack; i++) {
+  for (let i = 0; i < W * H && outsideBlack; i++) {
     if (!tpl.ids[i] && !black(i)) outsideBlack = false;
-  }
-
-  let borderBlack = true;
-  for (let i = 0; i < S && borderBlack; i++) {
-    borderBlack = black(i) && black((S - 1) * S + i) && black(i * S) && black(i * S + S - 1);
   }
 
   const { blob, mode } = await encodeWrap(canvas, px);
   const checks = [
-    { ok: canvas.width === 1024 && canvas.height === 1024, label: `Formaat ${S} × ${S} px` },
-    { ok: outsideBlack, label: 'Zwart tussen en rond de panelen' },
-    { ok: borderBlack, label: 'Geen witte rand (de rand van het canvas is zwart)' },
+    { ok: W === tpl.w && H === tpl.h, label: `Formaat ${W} × ${H} px (gelijk aan het sjabloon)` },
+    { ok: outsideBlack, label: 'Zwart tussen en rond de panelen (ook de rand)' },
     { ok: blob.size <= MAX_BYTES, label: `Bestandsgrootte ${(blob.size / 1024).toFixed(0)} KB (max. 1 MB)` },
   ];
-  return { blob, width: S, height: S, mode, checks };
+  return { blob, width: W, height: H, mode, checks };
 }
 
 // Eerst met volledige kleuren. Komt dat boven 1 MB uit, dan een palet-PNG met minder kleuren.
 async function encodeWrap(canvas, px) {
-  const S = canvas.width;
+  const W = canvas.width;
+  const H = canvas.height;
   let blob = await canvasToBlob(canvas);
   let mode = 'volledige kleuren (RGBA)';
   for (const colors of [256, 128, 64]) {
     if (blob.size <= MAX_BYTES) break;
     const { indices, palette } = quantize(px, colors);
-    const bytes = await encodeIndexedPng(S, S, indices, palette);
+    const bytes = await encodeIndexedPng(W, H, indices, palette);
     blob = new Blob([bytes], { type: 'image/png' });
     mode = `${palette.length / 3} kleuren (palet-PNG)`;
   }

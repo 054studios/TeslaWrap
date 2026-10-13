@@ -1,0 +1,262 @@
+{
+  "name": "Model 3 (2024+) Performance",
+  "width": 1024,
+  "height": 1024,
+  "panels": [
+    {
+      "id": 1,
+      "name": "Paneel 1: boven midden",
+      "area": 39969,
+      "bbox": [
+        251,
+        18,
+        774,
+        147
+      ],
+      "center": [
+        512.6,
+        73.5
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Paneel 2: boven links",
+      "area": 18273,
+      "bbox": [
+        40,
+        37,
+        248,
+        301
+      ],
+      "center": [
+        158.3,
+        197.0
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Paneel 3: boven rechts",
+      "area": 18264,
+      "bbox": [
+        782,
+        35,
+        990,
+        300
+      ],
+      "center": [
+        870.5,
+        195.6
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Paneel 4: boven midden",
+      "area": 50216,
+      "bbox": [
+        366,
+        161,
+        659,
+        406
+      ],
+      "center": [
+        512.4,
+        282.0
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Paneel 5: midden links",
+      "area": 31741,
+      "bbox": [
+        91,
+        317,
+        233,
+        560
+      ],
+      "center": [
+        161.8,
+        435.1
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Paneel 6: midden midden",
+      "area": 2129,
+      "bbox": [
+        308,
+        421,
+        379,
+        460
+      ],
+      "center": [
+        347.3,
+        440.3
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Paneel 7: midden midden",
+      "area": 2122,
+      "bbox": [
+        645,
+        421,
+        716,
+        460
+      ],
+      "center": [
+        676.4,
+        440.3
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Paneel 8: midden rechts",
+      "area": 31729,
+      "bbox": [
+        795,
+        317,
+        937,
+        560
+      ],
+      "center": [
+        865.4,
+        435.0
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Paneel 9: midden links",
+      "area": 7960,
+      "bbox": [
+        257,
+        304,
+        281,
+        848
+      ],
+      "center": [
+        268.2,
+        586.9
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Paneel 10: midden rechts",
+      "area": 7957,
+      "bbox": [
+        750,
+        304,
+        773,
+        848
+      ],
+      "center": [
+        761.2,
+        586.4
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Paneel 11: midden links",
+      "area": 26336,
+      "bbox": [
+        88,
+        552,
+        247,
+        782
+      ],
+      "center": [
+        169.8,
+        651.3
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Paneel 12: midden rechts",
+      "area": 26331,
+      "bbox": [
+        781,
+        552,
+        940,
+        782
+      ],
+      "center": [
+        857.4,
+        651.3
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Paneel 13: onder links",
+      "area": 38571,
+      "bbox": [
+        10,
+        316,
+        263,
+        960
+      ],
+      "center": [
+        113.8,
+        692.9
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Paneel 14: onder rechts",
+      "area": 38554,
+      "bbox": [
+        765,
+        316,
+        1018,
+        960
+      ],
+      "center": [
+        913.0,
+        692.9
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Paneel 15: onder midden",
+      "area": 30843,
+      "bbox": [
+        363,
+        603,
+        663,
+        779
+      ],
+      "center": [
+        512.5,
+        709.1
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Paneel 16: onder midden",
+      "area": 10428,
+      "bbox": [
+        392,
+        787,
+        632,
+        836
+      ],
+      "center": [
+        511.6,
+        810.4
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Paneel 17: onder midden",
+      "area": 42071,
+      "bbox": [
+        252,
+        845,
+        772,
+        1013
+      ],
+      "center": [
+        511.7,
+        923.7
+      ]
+    }
+  ]
+}

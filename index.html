@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Ontwerp je eigen Tesla wrap en download hem als 1024 × 1024 PNG, klaar voor de Tesla-app.">
+  <meta name="description" content="Ontwerp je eigen Tesla wrap en download hem als PNG, klaar voor de Tesla-app.">
   <meta name="theme-color" content="#0d1117">
   <title>Tesla Wrap Ontwerper</title>
   <link rel="icon" href="data:,">
@@ -12,12 +12,16 @@
 <body>
   <header class="topbar">
     <div class="brand">Tesla Wrap <span>ontwerper</span></div>
+    <label class="model-pick">
+      <span>Model</span>
+      <select id="model" aria-label="Kies je Tesla-model"></select>
+    </label>
     <div class="top-actions">
       <button class="btn icon" id="undo" type="button" aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl+Z)" disabled>↶</button>
       <button class="btn icon" id="redo" type="button" aria-label="Opnieuw" title="Opnieuw (Ctrl+Y)" disabled>↷</button>
-      <button class="btn" id="save-project" type="button">Project opslaan</button>
-      <button class="btn" id="open-project" type="button">Project openen</button>
-      <button class="btn primary" id="export" type="button">Exporteren als PNG</button>
+      <button class="btn" id="save-project" type="button"><span class="hide-sm">Project </span>opslaan</button>
+      <button class="btn" id="open-project" type="button"><span class="hide-sm">Project </span>openen</button>
+      <button class="btn primary" id="export" type="button">Exporteren<span class="hide-sm"> als PNG</span></button>
     </div>
   </header>
 
@@ -63,7 +67,7 @@
     </section>
 
     <section class="stage-col" aria-label="Ontwerp">
-      <div class="stage">
+      <div class="stage" id="stage">
         <canvas id="wrap" width="1024" height="1024" aria-hidden="true"></canvas>
         <canvas id="overlay" width="1024" height="1024" role="img" aria-label="Ontwerp van de wrap"></canvas>
       </div>
@@ -92,7 +96,7 @@
       <img id="export-preview" alt="Voorbeeld van je wrap">
       <p class="muted small" id="export-info"></p>
       <ul class="checks" id="export-checks"></ul>
-      <p class="muted small">Upload dit bestand daarna in de Tesla-app bij je wrap.</p>
+      <p class="muted small">Upload dit bestand daarna in de Tesla-app: Creations → Wrap → Upload (vanaf app-versie 4.59.0).</p>
     </div>
     <div class="export-actions">
       <a class="btn primary" id="export-download" download>Downloaden als PNG</a>

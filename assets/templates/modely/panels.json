@@ -1,0 +1,247 @@
+{
+  "name": "Model Y (vóór 2025)",
+  "width": 1024,
+  "height": 1024,
+  "panels": [
+    {
+      "id": 1,
+      "name": "Paneel 1: boven midden",
+      "area": 53179,
+      "bbox": [
+        254,
+        8,
+        771,
+        149
+      ],
+      "center": [
+        511.7,
+        75.2
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Paneel 2: boven links",
+      "area": 20942,
+      "bbox": [
+        27,
+        9,
+        254,
+        287
+      ],
+      "center": [
+        174.4,
+        178.3
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Paneel 3: boven rechts",
+      "area": 21113,
+      "bbox": [
+        769,
+        8,
+        995,
+        287
+      ],
+      "center": [
+        846.6,
+        178.4
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Paneel 4: boven midden",
+      "area": 54031,
+      "bbox": [
+        361,
+        151,
+        663,
+        393
+      ],
+      "center": [
+        511.6,
+        275.1
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Paneel 5: midden links",
+      "area": 41748,
+      "bbox": [
+        29,
+        283,
+        206,
+        545
+      ],
+      "center": [
+        116.2,
+        409.2
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Paneel 6: midden links",
+      "area": 10229,
+      "bbox": [
+        322,
+        140,
+        357,
+        632
+      ],
+      "center": [
+        333.9,
+        384.0
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Paneel 7: midden rechts",
+      "area": 10228,
+      "bbox": [
+        667,
+        140,
+        702,
+        632
+      ],
+      "center": [
+        689.1,
+        384.0
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Paneel 8: midden rechts",
+      "area": 41778,
+      "bbox": [
+        821,
+        283,
+        998,
+        546
+      ],
+      "center": [
+        909.0,
+        408.8
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Paneel 9: midden links",
+      "area": 2457,
+      "bbox": [
+        222,
+        406,
+        298,
+        448
+      ],
+      "center": [
+        262.4,
+        427.2
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Paneel 10: midden rechts",
+      "area": 2508,
+      "bbox": [
+        728,
+        405,
+        806,
+        448
+      ],
+      "center": [
+        764.5,
+        427.5
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Paneel 11: midden links",
+      "area": 34851,
+      "bbox": [
+        28,
+        534,
+        223,
+        769
+      ],
+      "center": [
+        126.9,
+        640.8
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Paneel 12: midden rechts",
+      "area": 34830,
+      "bbox": [
+        804,
+        534,
+        999,
+        769
+      ],
+      "center": [
+        898.9,
+        640.8
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Paneel 13: onder midden",
+      "area": 51672,
+      "bbox": [
+        302,
+        633,
+        722,
+        941
+      ],
+      "center": [
+        511.7,
+        823.1
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Paneel 14: onder rechts",
+      "area": 20454,
+      "bbox": [
+        765,
+        762,
+        924,
+        946
+      ],
+      "center": [
+        848.7,
+        859.9
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Paneel 15: onder links",
+      "area": 20403,
+      "bbox": [
+        104,
+        762,
+        264,
+        947
+      ],
+      "center": [
+        178.8,
+        860.1
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Paneel 16: onder midden",
+      "area": 28503,
+      "bbox": [
+        252,
+        890,
+        771,
+        1018
+      ],
+      "center": [
+        510.6,
+        958.8
+      ]
+    }
+  ]
+}

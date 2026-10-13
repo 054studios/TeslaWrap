@@ -1,0 +1,82 @@
+{
+  "name": "Cybertruck",
+  "width": 1024,
+  "height": 768,
+  "panels": [
+    {
+      "id": 1,
+      "name": "Paneel 1: boven midden",
+      "area": 138890,
+      "bbox": [
+        1,
+        0,
+        1024,
+        256
+      ],
+      "center": [
+        537.2,
+        109.7
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Paneel 2: midden links",
+      "area": 21026,
+      "bbox": [
+        26,
+        210,
+        91,
+        558
+      ],
+      "center": [
+        55.9,
+        383.5
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Paneel 3: midden links",
+      "area": 38238,
+      "bbox": [
+        127,
+        210,
+        265,
+        558
+      ],
+      "center": [
+        195.0,
+        383.5
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Paneel 4: midden rechts",
+      "area": 33142,
+      "bbox": [
+        919,
+        214,
+        1017,
+        554
+      ],
+      "center": [
+        967.4,
+        383.5
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Paneel 5: onder midden",
+      "area": 138857,
+      "bbox": [
+        1,
+        513,
+        1023,
+        768
+      ],
+      "center": [
+        537.0,
+        657.5
+      ]
+    }
+  ]
+}

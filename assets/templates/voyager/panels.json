@@ -1,11 +1,12 @@
 {
-  "name": "Voyager NCC-74656",
-  "size": 1024,
+  "name": "Voyager (eigen sjabloon)",
+  "width": 1024,
+  "height": 1024,
   "panels": [
     {
       "id": 1,
       "name": "Paneel 1: boven midden",
-      "area": 53793,
+      "area": 53844,
       "bbox": [
         241,
         21,
@@ -14,13 +15,13 @@
       ],
       "center": [
         513.1,
-        80.0
+        80.1
       ]
     },
     {
       "id": 2,
       "name": "Paneel 2: boven links",
-      "area": 18752,
+      "area": 18764,
       "bbox": [
         42,
         35,
@@ -35,7 +36,7 @@
     {
       "id": 3,
       "name": "Paneel 3: boven rechts",
-      "area": 18648,
+      "area": 18678,
       "bbox": [
         785,
         34,
@@ -44,30 +45,30 @@
       ],
       "center": [
         872.9,
-        193.9
+        193.8
       ]
     },
     {
       "id": 4,
       "name": "Paneel 4: boven midden",
-      "area": 51449,
+      "area": 51470,
       "bbox": [
         367,
         158,
         662,
-        408
+        410
       ],
       "center": [
         514.2,
-        281.8
+        281.9
       ]
     },
     {
       "id": 5,
       "name": "Paneel 5: midden links",
-      "area": 32051,
+      "area": 32063,
       "bbox": [
-        93,
+        92,
         315,
         236,
         559
@@ -80,7 +81,7 @@
     {
       "id": 6,
       "name": "Paneel 6: midden midden",
-      "area": 2429,
+      "area": 2437,
       "bbox": [
         309,
         418,
@@ -89,7 +90,7 @@
       ],
       "center": [
         348.5,
-        439.4
+        439.5
       ]
     },
     {
@@ -110,7 +111,7 @@
     {
       "id": 8,
       "name": "Paneel 8: midden rechts",
-      "area": 32196,
+      "area": 32205,
       "bbox": [
         796,
         315,
@@ -125,22 +126,22 @@
     {
       "id": 9,
       "name": "Paneel 9: midden links",
-      "area": 8594,
+      "area": 8742,
       "bbox": [
-        259,
+        258,
         302,
         283,
         847
       ],
       "center": [
-        270.5,
+        270.4,
         582.2
       ]
     },
     {
       "id": 10,
       "name": "Paneel 10: midden rechts",
-      "area": 8612,
+      "area": 8640,
       "bbox": [
         751,
         300,
@@ -149,13 +150,13 @@
       ],
       "center": [
         763.4,
-        581.7
+        581.6
       ]
     },
     {
       "id": 11,
       "name": "Paneel 11: midden links",
-      "area": 26947,
+      "area": 26967,
       "bbox": [
         88,
         549,
@@ -164,13 +165,13 @@
       ],
       "center": [
         171.8,
-        650.1
+        650.2
       ]
     },
     {
       "id": 12,
       "name": "Paneel 12: midden rechts",
-      "area": 26981,
+      "area": 26995,
       "bbox": [
         783,
         550,
@@ -178,14 +179,14 @@
         782
       ],
       "center": [
-        860.0,
+        859.9,
         650.4
       ]
     },
     {
       "id": 13,
       "name": "Paneel 13: onder links",
-      "area": 39289,
+      "area": 39357,
       "bbox": [
         11,
         313,
@@ -200,7 +201,7 @@
     {
       "id": 14,
       "name": "Paneel 14: onder rechts",
-      "area": 39918,
+      "area": 39958,
       "bbox": [
         767,
         313,
@@ -209,13 +210,13 @@
       ],
       "center": [
         915.4,
-        690.9
+        691.0
       ]
     },
     {
       "id": 15,
       "name": "Paneel 15: onder midden",
-      "area": 32197,
+      "area": 32251,
       "bbox": [
         363,
         600,
@@ -223,14 +224,14 @@
         777
       ],
       "center": [
-        515.2,
-        706.7
+        515.3,
+        706.6
       ]
     },
     {
       "id": 16,
       "name": "Paneel 16: onder midden",
-      "area": 10702,
+      "area": 10731,
       "bbox": [
         394,
         785,
@@ -238,16 +239,16 @@
         835
       ],
       "center": [
-        514.1,
-        808.5
+        514.0,
+        808.4
       ]
     },
     {
       "id": 17,
       "name": "Paneel 17: onder midden",
-      "area": 38870,
+      "area": 38903,
       "bbox": [
-        255,
+        254,
         842,
         773,
         1011
