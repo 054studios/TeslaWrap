@@ -13,48 +13,59 @@
   <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
+  <a class="skip-link" href="#inhoud">Naar de inhoud</a>
+
   <header class="site-head">
-    <div class="wrap">
+    <div class="wrap head-row">
       <a class="brand" href="/" aria-label="Tesla Wrap Ontwerper, startpagina">
         <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.2c2.3-2.6 14.7-2.6 17 0-2.3 2.2-14.7 2.2-17 0z"/><path d="M12 10.5v9"/></svg>
         <span>Tesla Wrap</span>
       </a>
       <nav class="site-nav" aria-label="Op deze pagina">
-        <a href="#galerij">Galerij</a>
+        <a href="#modellen">Modellen</a>
+        <a href="#galerij">Voorbeelden</a>
         <a href="#hoe">Hoe het werkt</a>
-        <a href="#voordelen">Voordelen</a>
+        <a href="#vragen">Vragen</a>
       </nav>
-      <select class="lang-select" data-lang-select aria-label="Taal"></select>
-      <a class="btn primary" href="/ontwerp/">Begin met ontwerpen</a>
+      <div class="head-actions">
+        <select class="lang-select" data-lang-select aria-label="Taal"></select>
+        <a class="btn primary" href="/ontwerp/">Begin met ontwerpen</a>
+      </div>
     </div>
   </header>
 
-  <main>
-    <section class="hero">
+  <main id="inhoud">
+    <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
-        <div class="hero-text">
-          <h1>Ontwerp je eigen Tesla-wrap</h1>
-          <p class="lead">Kleur de panelen, zet een foto op één paneel of over de hele wrap, en download een PNG die klaar is voor de Tesla-app. Geen account nodig.</p>
-          <div class="hero-actions">
-            <a class="btn primary big" href="/ontwerp/">Begin met ontwerpen</a>
-            <a class="btn quiet big" href="#galerij">Bekijk de voorbeelden</a>
-          </div>
+        <p class="eyebrow">Officiële Tesla-sjablonen</p>
+        <h1 id="hero-title">Ontwerp je eigen Tesla-wrap</h1>
+        <p class="lead">Kies je model, kleur de panelen en download een PNG die klaar is voor de Tesla-app. Geen account nodig.</p>
+        <div class="hero-actions">
+          <a class="btn primary big" href="#modellen">Kies je model</a>
+          <a class="btn quiet big" href="#galerij">Bekijk de voorbeelden</a>
         </div>
-        <figure class="hero-figure">
-          <img src="voorbeelden/rode-lijnen-512.png" width="512" height="512" alt="Voorbeeld: een donkergrijze wrap met twee rode racestrepen over het midden">
-          <figcaption>Voorbeeld: Rode lijnen, Model 3</figcaption>
-        </figure>
+      </div>
+    </section>
+
+    <section class="section picker" id="modellen" aria-labelledby="modellen-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="modellen-title">Kies je model</h2>
+          <p>Elk model heeft een eigen paneelindeling. Je gaat meteen naar de editor met dat model.</p>
+        </div>
+        <div class="model-groups" id="model-groups"></div>
       </div>
     </section>
 
     <section class="section" id="galerij" aria-labelledby="galerij-title">
       <div class="wrap">
         <div class="section-head">
-          <h2 id="galerij-title">Galerij</h2>
-          <p>Open een voorbeeld om het aan te passen. Je krijgt dan een eigen kopie in je lijst met ontwerpen.</p>
+          <h2 id="galerij-title">Voorbeelden per auto</h2>
+          <p>Tien ontwerpen per model. Download de PNG, of open hem in de editor om hem aan te passen.</p>
         </div>
-        <div class="filters" id="filters" role="group" aria-label="Filter op model"></div>
-        <div class="cards" id="gallery-grid" aria-live="polite"><p class="muted">Voorbeelden laden…</p></div>
+        <div class="filters" id="group-filters" role="group" aria-label="Filter op auto"></div>
+        <div class="filters variant-filters" id="variant-filters" role="group" aria-label="Filter op model"></div>
+        <div class="cards gallery-grid" id="gallery-grid" aria-live="polite"><p class="muted">Voorbeelden laden…</p></div>
       </div>
     </section>
 
@@ -86,6 +97,46 @@
           <article><h3>Klaar voor de upload</h3><p>PNG op de juiste afmeting, zwart tussen de panelen, maximaal 1 MB.</p></article>
           <article><h3>Op je telefoon</h3><p>Werkt op pc, tablet en telefoon.</p></article>
         </div>
+      </div>
+    </section>
+
+    <section class="section" id="vragen" aria-labelledby="vragen-title">
+      <div class="wrap narrow">
+        <div class="section-head">
+          <h2 id="vragen-title">Veelgestelde vragen</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Hoe upload ik de PNG in de Tesla-app?</summary>
+            <p>Ga in de Tesla-app naar Creations, Wrap, Upload (vanaf versie 4.59.0) en kies je PNG.</p>
+          </details>
+          <details>
+            <summary>Kost het iets?</summary>
+            <p>Nee. De editor is gratis en werkt zonder account.</p>
+          </details>
+          <details>
+            <summary>Blijven mijn foto's privé?</summary>
+            <p>Ja. Je foto's blijven in je browser en gaan niet naar een server.</p>
+          </details>
+          <details>
+            <summary>Is dit van Tesla?</summary>
+            <p>Nee. De site is niet van Tesla en niet verbonden met Tesla. De paneelindelingen komen uit een openbare Tesla-repo.</p>
+          </details>
+          <details>
+            <summary>Werkt het op mijn telefoon?</summary>
+            <p>Werkt op pc, tablet en telefoon.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title">
+      <div class="wrap closing-inner">
+        <div>
+          <h2 id="closing-title">Klaar om te beginnen?</h2>
+          <p>Kies je model en ontwerp je wrap. Je eerste PNG is zo klaar.</p>
+        </div>
+        <a class="btn primary big" href="/ontwerp/">Begin met ontwerpen</a>
       </div>
     </section>
   </main>

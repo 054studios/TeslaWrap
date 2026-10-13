@@ -24,7 +24,7 @@ IGNORE = {'Tesla Wrap', 'px', 'PNG', 'teslamotors/custom-wraps'}
 # en daarom niet als letterlijke t('...')-aanroep in de code staan. Het script controleert dat ze
 # in de JavaScript voorkomen, zodat deze lijst niet ongemerkt verouderd.
 DYNAMIC = [
-    'Kleurvlak', 'Foto', 'Sticker', 'Tekening', 'Tekst', 'Voorbeeld', 'Alle',
+    'Kleurvlak', 'Foto', 'Sticker', 'Tekening', 'Tekst', 'Voorbeeld',
     'Tweede kleur', 'Hoek', 'Vergroting', 'Draaien', 'Dekking', 'Grootte',
     'Tik op een paneel om het te kiezen. Met Meerdere panelen of Shift kies je er meer.',
     'Sleep een foto, sticker of tekst. Op een leeg deel van het canvas verschuif je het beeld.',

@@ -1691,6 +1691,13 @@ async function init() {
       el.startNote.textContent = t('Voorbeeld openen mislukt: {msg}', { msg: err.message });
     }
   }
+  // Een autokeuze van de landingspagina (?model=id) opent de editor meteen met dat model.
+  const model = new URLSearchParams(location.search).get('model');
+  if (model && models.some((m) => m.id === model)) {
+    window.history.replaceState(null, '', location.pathname);
+    await chooseModel(model);
+    return;
+  }
   setScreen('start');
 }
 
