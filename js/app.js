@@ -1,43 +1,60 @@
-// Tesla Wrap Ontwerper: state, modelkeuze, gereedschap, lagen, project en export.
+// Tesla Wrap Ontwerper: stappen, modelkeuze, editor, zoomen, lagen, symmetrie, opslag en export.
 import { loadTemplate, idAt, boundsOf } from './template.js';
 import { renderWrap, renderOverlay, ensurePaint, drawStroke, drawSegment, hitLayer, FONTS } from './render.js';
 import { History, copyLayers } from './model.js';
 import { exportWrap } from './export.js';
+import { saveDraft, loadDraft, clearDraft } from './store.js';
 import { makeCanvas, loadImage, download, stamp, esc, clamp, newId } from './util.js';
 
 const MODELS_URL = 'assets/templates/index.json';
-const MODEL_KEY = 'tesla-wrap-model';
 const MAX_PHOTO_SIDE = 2048;
-const LABELS = { fill: 'Kleurvlak', image: 'Foto', paint: 'Tekening', text: 'Tekst' };
+const MAX_STICKER_SIDE = 1024;
+const MIN_Z = 1;
+const MAX_Z = 8;
+const LABELS = { fill: 'Kleurvlak', image: 'Foto', sticker: 'Sticker', paint: 'Tekening', text: 'Tekst' };
 const TOOL_HINTS = {
-  select: 'Tik op een paneel om het te kiezen. Met “Meerdere panelen” of Shift kies je er meer.',
-  move: 'Sleep een foto of tekst om hem te verplaatsen. Knijp met twee vingers om te vergroten en te draaien.',
-  brush: 'Teken op de wrap. Alles buiten de panelen verdwijnt in de export.',
+  select: 'Tik op een paneel om het te kiezen. Met Meerdere panelen of Shift kies je er meer.',
+  move: 'Sleep een foto, sticker of tekst. Op een leeg deel van het canvas verschuif je het beeld.',
+  brush: 'Teken met één vinger. Met twee vingers zoom je of verschuif je het beeld.',
   eraser: 'De gum wist op de geselecteerde tekenlaag.',
   text: 'Tik op de wrap om een tekstlaag te plaatsen.',
 };
-const TOOL_KEYS = { p: 'select', v: 'move', b: 'brush', e: 'eraser', t: 'text' };
+const TOOL_KEYS = { s: 'select', v: 'move', b: 'brush', e: 'eraser', t: 'text' };
 
 const $ = (sel) => document.querySelector(sel);
 const el = {
-  overlay: $('#overlay'),
-  wrap: $('#wrap'),
+  start: $('#start'),
+  grid: $('#model-grid'),
+  startBack: $('#start-back'),
+  startNote: $('#start-note'),
+  resume: $('#resume'),
+  resumeTitle: $('#resume-title'),
+  resumeMeta: $('#resume-meta'),
+  editor: $('#editor'),
   stage: $('#stage'),
-  model: $('#model'),
-  status: $('#status'),
+  viewport: $('#viewport'),
+  wrap: $('#wrap'),
+  overlay: $('#overlay'),
+  zoomLevel: $('#zoom-level'),
+  modelName: $('#model-name'),
+  panelCount: $('#panel-count'),
+  selCount: $('#sel-count'),
   hint: $('#hint'),
-  props: $('#props'),
-  layers: $('#layers'),
+  steps: document.querySelectorAll('.step'),
   undo: $('#undo'),
   redo: $('#redo'),
+  props: $('#props'),
+  layers: $('#layers'),
   color: $('#color'),
   size: $('#size'),
   sizeOut: $('#size-out'),
   multi: $('#multi'),
+  symmetry: $('#symmetry'),
   outlines: $('#outlines'),
   labels: $('#labels'),
   scopeNote: $('#scope-note'),
   photoInput: $('#photo-input'),
+  stickerInput: $('#sticker-input'),
   projectInput: $('#project-input'),
   dialog: $('#export-dialog'),
 };
@@ -58,18 +75,23 @@ const scene = {
   tint: null,
   tintKey: null,
 };
-const ui = { tool: 'select', outlines: true, labels: false };
+const ui = { tool: 'select', outlines: true, labels: false, symmetry: false, space: false };
+const view = { z: 1, x: 0, y: 0 }; // zoom en verschuiving van het beeld, in stage-pixels
 const history = new History();
-const pointers = new Map();
-const counters = { fill: 0, image: 0, paint: 0, text: 0 };
+const pointers = new Map(); // pointerId -> { cx, cy } in schermcoördinaten
+const counters = { fill: 0, image: 0, sticker: 0, paint: 0, text: 0 };
 const templates = new Map(); // model-id -> geladen sjabloon (één keer laden)
+const catalog = new Map(); // model-id -> panels.json (voor de modelkaarten)
 let models = [];
 let current = null; // het gekozen model uit index.json
+let screen = 'start';
 let drag = null;
 let frame = 0;
 let photoTarget = null; // laag die een nieuwe foto krijgt; null = nieuwe fotolaag
 let exportUrl = null;
 let flashTimer = 0;
+let saveTimer = 0;
+let pendingDraft = null;
 
 // --- hulpfuncties ----------------------------------------------------------------
 
@@ -92,10 +114,15 @@ const nextName = (type) => `${LABELS[type]} ${++counters[type]}`;
 const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y) || 1;
 const angle = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
 const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+const mirrorOf = (id) => (scene.tpl && scene.tpl.byId.get(id) ? scene.tpl.byId.get(id).mirror : null) ?? null;
+const isBlank = (layers) =>
+  layers.length <= 1 && (!layers[0] || (layers[0].type === 'fill' && layers[0].color === '#ffffff'));
+const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-function toCanvas(e) {
+// Schermcoördinaat naar canvas-coördinaat. Werkt ook als het beeld gezoomd of verschoven is.
+function canvasPoint(cx, cy) {
   const r = el.overlay.getBoundingClientRect();
-  return { x: ((e.clientX - r.left) * scene.w) / r.width, y: ((e.clientY - r.top) * scene.h) / r.height };
+  return { x: ((cx - r.left) * scene.w) / r.width, y: ((cy - r.top) * scene.h) / r.height };
 }
 
 // Nieuwe laag komt boven de geselecteerde laag, of bovenaan.
@@ -117,13 +144,123 @@ function fitLayer(l) {
   l.rot = 0;
 }
 
+// Een sticker of logo past binnen 60% van de panelen, zodat hij er rustig op staat.
+function fitSticker(l) {
+  const a = scene.assets.get(l.asset);
+  if (!a) return;
+  const [x0, y0, x1, y1] = boundsOf(scene.tpl, l.panels);
+  l.x = (x0 + x1) / 2;
+  l.y = (y0 + y1) / 2;
+  l.base = Math.min(((x1 - x0) * 0.6) / a.w, ((y1 - y0) * 0.6) / a.h);
+  l.zoom = 1;
+  l.rot = 0;
+}
+
 function flash(msg) {
   el.hint.textContent = msg;
   clearTimeout(flashTimer);
   flashTimer = setTimeout(updateStatus, 2600);
 }
 
-// --- weergave en undo ------------------------------------------------------------
+// --- zoomen en verschuiven ---------------------------------------------------------
+
+function stageRect() {
+  return el.stage.getBoundingClientRect();
+}
+
+function clampView() {
+  if (view.z <= MIN_Z) {
+    view.z = MIN_Z;
+    view.x = 0;
+    view.y = 0;
+    return;
+  }
+  const r = stageRect();
+  view.x = clamp(view.x, r.width - r.width * view.z, 0);
+  view.y = clamp(view.y, r.height - r.height * view.z, 0);
+}
+
+function applyView() {
+  el.viewport.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.z})`;
+  el.zoomLevel.textContent = `${Math.round(view.z * 100)}%`;
+}
+
+// Zoomt rond een punt op het scherm, zodat dat punt op dezelfde plek blijft.
+function zoomAt(px, py, z) {
+  const z2 = clamp(z, MIN_Z, MAX_Z);
+  view.x = px - ((px - view.x) * z2) / view.z;
+  view.y = py - ((py - view.y) * z2) / view.z;
+  view.z = z2;
+  clampView();
+  applyView();
+}
+
+function zoomBy(factor) {
+  const r = stageRect();
+  if (!r.width) return;
+  zoomAt(r.width / 2, r.height / 2, view.z * factor);
+}
+
+function fitView() {
+  view.z = MIN_Z;
+  view.x = 0;
+  view.y = 0;
+  applyView();
+}
+
+// Zoomt zo in dat de gekozen panelen het beeld vullen.
+function zoomToSelection() {
+  if (!scene.selPanels.size || !scene.tpl) return flash('Kies eerst een paneel om naartoe te zoomen.');
+  const r = stageRect();
+  if (!r.width) return;
+  const base = r.width / scene.w; // schermpixels per canvas-pixel bij zoom 1
+  const [x0, y0, x1, y1] = boundsOf(scene.tpl, [...scene.selPanels]);
+  const bw = Math.max(1, (x1 - x0) * base);
+  const bh = Math.max(1, (y1 - y0) * base);
+  view.z = clamp(Math.min((r.width / 1.15) / bw, (r.height / 1.15) / bh), MIN_Z, MAX_Z);
+  view.x = r.width / 2 - ((x0 + x1) / 2) * base * view.z;
+  view.y = r.height / 2 - ((y0 + y1) / 2) * base * view.z;
+  clampView();
+  applyView();
+}
+
+function onWheel(e) {
+  if (screen !== 'editor' || !scene.tpl) return;
+  e.preventDefault();
+  const r = stageRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, view.z * Math.exp(-e.deltaY * 0.0018));
+}
+
+// Twee vingers: zoomen en verschuiven rond het midden tussen de vingers.
+function beginView() {
+  const [a, b] = [...pointers.values()];
+  const r = stageRect();
+  drag = {
+    kind: 'view',
+    d0: Math.hypot(b.cx - a.cx, b.cy - a.cy) || 1,
+    z0: view.z,
+    x0: view.x,
+    y0: view.y,
+    m0: { x: (a.cx + b.cx) / 2 - r.left, y: (a.cy + b.cy) / 2 - r.top },
+  };
+}
+
+function updateView() {
+  const [a, b] = [...pointers.values()];
+  const r = stageRect();
+  const d = Math.hypot(b.cx - a.cx, b.cy - a.cy) || 1;
+  const mx = (a.cx + b.cx) / 2 - r.left;
+  const my = (a.cy + b.cy) / 2 - r.top;
+  const ux = (drag.m0.x - drag.x0) / drag.z0; // punt van het beeld onder het beginmidden
+  const uy = (drag.m0.y - drag.y0) / drag.z0;
+  view.z = clamp(drag.z0 * (d / drag.d0), MIN_Z, MAX_Z);
+  view.x = mx - ux * view.z;
+  view.y = my - uy * view.z;
+  clampView();
+  applyView();
+}
+
+// --- weergave en undo --------------------------------------------------------------
 
 function requestRender() {
   if (!frame) {
@@ -151,10 +288,11 @@ function refresh({ list = true, props = true } = {}) {
   requestRender();
 }
 
-// Legt een undo-punt vast en ververst de UI.
+// Legt een undo-punt vast, ververst de UI en bewaart het ontwerp automatisch.
 function commit(opts) {
   history.push(copyLayers(scene.layers));
   refresh(opts);
+  scheduleSave();
 }
 
 function restore(snapshot) {
@@ -162,6 +300,7 @@ function restore(snapshot) {
   scene.paint.clear();
   if (!findLayer(scene.selLayerId)) scene.selLayerId = null;
   refresh();
+  scheduleSave();
 }
 
 function undo() {
@@ -181,13 +320,14 @@ function updateUndo() {
 
 function updateStatus() {
   const n = scene.selPanels.size;
-  el.status.textContent = scene.tpl
-    ? `${scene.tpl.name} · ${scene.tpl.panels.length} panelen · ${n ? `${n} gekozen` : 'geen paneel gekozen'}`
-    : '';
+  el.modelName.textContent = scene.tpl ? scene.tpl.name : '';
+  el.panelCount.textContent = scene.tpl ? `${scene.tpl.panels.length} panelen` : '';
+  el.selCount.textContent = n ? `${n} gekozen` : 'Geen paneel gekozen';
   el.hint.textContent = TOOL_HINTS[ui.tool] || '';
   el.scopeNote.textContent = n
     ? 'Nieuwe lagen komen op de gekozen panelen.'
     : 'Nieuwe lagen komen op de hele wrap. Kies eerst panelen om ze daarop te zetten.';
+  el.zoomLevel.textContent = `${Math.round(view.z * 100)}%`;
 }
 
 function setTool(name) {
@@ -196,7 +336,38 @@ function setTool(name) {
   updateStatus();
 }
 
-// --- modellen --------------------------------------------------------------------
+// --- schermen en stappen -------------------------------------------------------------
+
+function setScreen(name) {
+  screen = name;
+  el.start.hidden = name !== 'start';
+  el.editor.hidden = name !== 'editor';
+  if (name === 'start') renderModelGrid();
+  else refresh();
+  updateSteps();
+  window.scrollTo(0, 0);
+}
+
+function updateSteps() {
+  const hasModel = !!current;
+  el.steps.forEach((b) => {
+    const step = b.dataset.step;
+    const active = (step === 'model' && screen === 'start') || (step === 'edit' && screen === 'editor');
+    b.disabled = step !== 'model' && !hasModel;
+    if (active) b.setAttribute('aria-current', 'step');
+    else b.removeAttribute('aria-current');
+  });
+  el.startBack.hidden = !hasModel;
+  $('#export').disabled = !hasModel;
+}
+
+function onStep(step) {
+  if (step === 'model') setScreen('start');
+  else if (step === 'edit') setScreen('editor');
+  else if (step === 'export') openExport();
+}
+
+// --- modellen en de startpagina -------------------------------------------------------
 
 async function loadModelList() {
   const r = await fetch(MODELS_URL);
@@ -204,17 +375,68 @@ async function loadModelList() {
   return r.json();
 }
 
-function fillModelPicker(data) {
-  const groups = new Map();
-  for (const m of data.models) {
-    if (!groups.has(m.group)) {
-      const g = document.createElement('optgroup');
-      g.label = m.group;
-      groups.set(m.group, g);
-      el.model.append(g);
+async function loadCatalog() {
+  await Promise.all(
+    models.map(async (m) => {
+      const r = await fetch(`assets/templates/${m.id}/panels.json`);
+      if (!r.ok) throw new Error(`sjabloon ${m.id} niet gevonden`);
+      catalog.set(m.id, await r.json());
+    }),
+  );
+}
+
+// Tekent het paneelsilhouet van een model: witte panelen op de kaart.
+async function drawSilhouette(canvas, id) {
+  const meta = catalog.get(id);
+  if (!meta) return;
+  try {
+    const img = await loadImage(`assets/templates/${id}/mask.png`);
+    const W = 260;
+    const H = Math.round((W * meta.height) / meta.width);
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, W, H);
+    const d = ctx.getImageData(0, 0, W, H);
+    for (let i = 0; i < d.data.length; i += 4) {
+      const on = d.data[i] > 0;
+      d.data[i] = 226;
+      d.data[i + 1] = 231;
+      d.data[i + 2] = 238;
+      d.data[i + 3] = on ? 255 : 0;
     }
-    groups.get(m.group).append(new Option(m.name, m.id));
+    ctx.putImageData(d, 0, 0);
+  } catch {
+    // Zonder silhouet toont de kaart alleen de naam.
   }
+}
+
+function modelCard(m) {
+  const meta = catalog.get(m.id);
+  const info = meta ? `${meta.panels.length} panelen, ${meta.width} × ${meta.height}` : '';
+  const isCurrent = current && current.id === m.id;
+  return `<button class="model-card${isCurrent ? ' is-current' : ''}" type="button" data-model="${m.id}">
+    <span class="sil-wrap"><canvas data-sil="${m.id}" aria-hidden="true"></canvas></span>
+    <span class="model-name">${esc(m.name)}</span>
+    <span class="model-meta mono">${esc(info)}</span>
+  </button>`;
+}
+
+function renderModelGrid() {
+  const groups = new Map();
+  for (const m of models) {
+    if (!groups.has(m.group)) groups.set(m.group, []);
+    groups.get(m.group).push(m);
+  }
+  el.grid.innerHTML = [...groups]
+    .map(
+      ([group, items]) => `<section class="model-group" aria-labelledby="g-${slug(group)}">
+        <h2 id="g-${slug(group)}">${esc(group)}</h2>
+        <div class="cards">${items.map(modelCard).join('')}</div>
+      </section>`,
+    )
+    .join('');
+  el.grid.querySelectorAll('canvas[data-sil]').forEach((c) => drawSilhouette(c, c.dataset.sil));
 }
 
 // Laadt een model: sjabloon, canvasafmeting en (tenzij keepDoc) een lege lagenlijst.
@@ -235,36 +457,103 @@ async function selectModel(id, { keepDoc = false } = {}) {
     c.height = tpl.h;
   }
   el.stage.style.aspectRatio = `${tpl.w} / ${tpl.h}`;
-  el.model.value = id;
   scene.tint = null;
   scene.tintKey = null;
+  fitView();
   try {
-    localStorage.setItem(MODEL_KEY, id);
+    localStorage.setItem('tesla-wrap-model', id);
   } catch {
-    // Geen opslag beschikbaar (bijvoorbeeld privé-modus): het model wordt dan niet onthouden.
+    // Geen opslag beschikbaar: het model wordt dan niet onthouden.
   }
   if (keepDoc) refresh();
   else resetDocument();
 }
 
-async function onModelChange() {
-  if (!current) return;
-  const id = el.model.value;
-  if (id === current.id) return;
-  const hasContent = history.canUndo || scene.layers.length > 1;
-  if (hasContent && !confirm('Een ander model wisselt het sjabloon. Je huidige ontwerp wordt dan gewist. Doorgaan?')) {
-    el.model.value = current.id;
-    return;
-  }
+// Kiest een model op de startpagina. Wisselen wist het ontwerp, dus daar vragen we eerst om bevestiging.
+// Er staat al werk op het canvas: een laag naast de standaardlaag, of iets om ongedaan te maken.
+function hasDesign() {
+  return !!current && (history.canUndo || scene.layers.length > 1);
+}
+
+async function chooseModel(id) {
+  if (current && id === current.id) return setScreen('editor');
+  if (hasDesign() && !confirm('Een ander model wisselt het sjabloon. Je huidige ontwerp wordt dan gewist. Doorgaan?')) return;
   try {
     await selectModel(id);
+    await clearDraft();
+    setScreen('editor');
   } catch (err) {
-    el.model.value = current.id;
     alert(`Model laden mislukt: ${err.message}`);
   }
 }
 
-// --- lagen -----------------------------------------------------------------------
+// Leeg ontwerp voor het gekozen model. Lagen en selectie zijn per model, dus die worden ook gewist.
+function resetDocument() {
+  scene.layers = [baseLayer()];
+  scene.assets.clear();
+  scene.paint.clear();
+  scene.selLayerId = null;
+  scene.selPanels.clear();
+  for (const k of Object.keys(counters)) counters[k] = 0;
+  history.reset(copyLayers(scene.layers));
+  refresh();
+}
+
+// --- automatisch opslaan en herstellen ----------------------------------------------------
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveDraftNow, 700);
+}
+
+function saveDraftNow() {
+  clearTimeout(saveTimer);
+  if (!current || isBlank(scene.layers)) return;
+  const assets = [];
+  for (const l of scene.layers) {
+    if (l.asset && scene.assets.has(l.asset) && !assets.some((a) => a.id === l.asset)) {
+      assets.push({ id: l.asset, dataUrl: scene.assets.get(l.asset).dataUrl });
+    }
+  }
+  saveDraft({ id: 'current', model: current.id, layers: scene.layers, assets, savedAt: Date.now() });
+}
+
+function showResume(draft) {
+  const meta = models.find((m) => m.id === draft.model);
+  pendingDraft = draft;
+  el.resumeTitle.textContent = `Doorgaan met je ontwerp voor ${meta ? meta.name : 'je model'}`;
+  el.resumeMeta.textContent = `Automatisch opgeslagen op ${new Date(draft.savedAt).toLocaleString('nl-NL', {
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+  })}`;
+  el.resume.hidden = false;
+}
+
+async function resumeDraft(draft) {
+  try {
+    await selectModel(draft.model, { keepDoc: true });
+    scene.assets.clear();
+    for (const a of draft.assets || []) {
+      const img = await loadImage(a.dataUrl);
+      scene.assets.set(a.id, { id: a.id, img, w: img.naturalWidth, h: img.naturalHeight, dataUrl: a.dataUrl });
+    }
+    scene.layers = draft.layers;
+    scene.paint.clear();
+    scene.selLayerId = null;
+    scene.selPanels.clear();
+    for (const k of Object.keys(counters)) counters[k] = scene.layers.filter((l) => l.type === k).length;
+    history.reset(copyLayers(scene.layers));
+    pendingDraft = null;
+    el.resume.hidden = true;
+    setScreen('editor');
+  } catch (err) {
+    alert(`Herstellen mislukt: ${err.message}`);
+  }
+}
+
+// --- lagen --------------------------------------------------------------------------
 
 function addFill() {
   insertLayer({
@@ -319,44 +608,44 @@ function moveLayer(id, dir) {
   commit();
 }
 
-// Leeg ontwerp voor het gekozen model. Lagen en panelen zijn per model, dus ook de selectie wordt gewist.
-function resetDocument() {
-  scene.layers = [baseLayer()];
-  scene.assets.clear();
-  scene.paint.clear();
-  scene.selLayerId = null;
-  scene.selPanels.clear();
-  for (const k of Object.keys(counters)) counters[k] = 0;
-  history.reset(copyLayers(scene.layers));
-  refresh();
-}
-
 // --- panelen en gereedschap --------------------------------------------------------
 
+// Kiest een paneel. Met symmetrie aan kies je het spiegelpaneel er automatisch bij.
 function pickPanel(p, e) {
   const id = idAt(scene.tpl, p.x, p.y);
   const additive = el.multi.checked || e.shiftKey || e.ctrlKey || e.metaKey;
   if (!additive) scene.selPanels.clear();
   if (id) {
-    if (additive && scene.selPanels.has(id)) scene.selPanels.delete(id);
-    else scene.selPanels.add(id);
+    const ids = [id];
+    const mir = ui.symmetry ? mirrorOf(id) : null;
+    if (mir !== null && mir !== id) ids.push(mir);
+    const remove = additive && scene.selPanels.has(id);
+    ids.forEach((i) => {
+      if (remove) scene.selPanels.delete(i);
+      else scene.selPanels.add(i);
+    });
   }
   refresh();
 }
 
-function beginMove(p, pointerId) {
+function beginMove(p, e) {
   const hit = hitLayer(scene, p.x, p.y);
-  scene.selLayerId = hit ? hit.id : null;
-  if (hit) {
-    drag = { kind: 'move', id: hit.id, pointerId, start: p, x0: hit.x, y0: hit.y, moved: false, pinch: null };
+  if (!hit) {
+    scene.selLayerId = null;
+    drag = { kind: 'pan', x: e.clientX, y: e.clientY };
+    refresh();
+    return;
   }
+  scene.selLayerId = hit.id;
+  drag = { kind: 'move', id: hit.id, pointerId: e.pointerId, start: p, x0: hit.x, y0: hit.y, moved: false, pinch: null };
   refresh();
 }
 
+// Twee vingers op een gekozen laag: vergroten en draaien van de laag.
 function startPinch() {
   const l = findLayer(drag.id);
-  if (!l) return;
-  const [a, b] = [...pointers.values()];
+  if (!l) return beginView();
+  const [a, b] = [...pointers.values()].map((q) => canvasPoint(q.cx, q.cy));
   drag.pinch = {
     d0: dist(a, b),
     a0: angle(a, b),
@@ -370,41 +659,61 @@ function startPinch() {
   drag.moved = true;
 }
 
+// Een streek met symmetrie aan krijgt de spiegelas mee, zodat hij ook op de andere kant getekend wordt.
 function beginStroke(p, pointerId, erase) {
   let layer = selLayer();
   if (!layer || layer.type !== 'paint') {
-    if (erase) {
-      flash('Kies eerst een tekenlaag (teken er eerst iets op) om te gummen.');
-      return;
-    }
+    if (erase) return flash('Kies eerst een tekenlaag (teken er eerst iets op) om te gummen.');
     layer = { id: newId('l'), type: 'paint', name: nextName('paint'), visible: true, opacity: 1, panels: null, strokes: [] };
     insertLayer(layer);
   }
   const ctx = ensurePaint(scene, layer).getContext('2d');
-  const stroke = { c: el.color.value, w: Number(el.size.value), e: erase, p: [p.x, p.y] };
+  const stroke = {
+    c: el.color.value,
+    w: Number(el.size.value),
+    e: erase,
+    sym: ui.symmetry && typeof scene.tpl.axis === 'number' ? scene.tpl.axis : null,
+    p: [p.x, p.y],
+  };
   layer.strokes = [...layer.strokes, stroke];
   drawStroke(ctx, stroke);
   drag = { kind: 'draw', id: layer.id, pointerId, stroke, last: p };
   refresh();
 }
 
+function finishStroke() {
+  drag = null;
+  commit({ list: false, props: false });
+}
+
 function onPointerDown(e) {
-  if (!scene.tpl || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (!scene.tpl || screen !== 'editor') return;
+  if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
   e.preventDefault();
   el.overlay.setPointerCapture(e.pointerId);
-  const p = toCanvas(e);
-  pointers.set(e.pointerId, p);
-  if (pointers.size > 1) {
-    if (drag && drag.kind === 'move') startPinch();
+  pointers.set(e.pointerId, { cx: e.clientX, cy: e.clientY });
+
+  if (pointers.size >= 2) {
+    if (drag && drag.kind === 'move' && drag.pinch === null && ui.tool === 'move') startPinch();
+    else {
+      if (drag && drag.kind === 'draw') finishStroke();
+      beginView();
+    }
     requestRender();
     return;
   }
+
+  if (e.button === 1 || ui.space) {
+    drag = { kind: 'pan', x: e.clientX, y: e.clientY };
+    return;
+  }
+  const p = canvasPoint(e.clientX, e.clientY);
   switch (ui.tool) {
     case 'select':
       pickPanel(p, e);
       break;
     case 'move':
-      beginMove(p, e.pointerId);
+      beginMove(p, e);
       break;
     case 'brush':
       beginStroke(p, e.pointerId, false);
@@ -417,19 +726,30 @@ function onPointerDown(e) {
       setTool('move');
       break;
   }
+  requestRender();
 }
 
 function onPointerMove(e) {
-  if (!pointers.has(e.pointerId)) return;
-  const p = toCanvas(e);
-  pointers.set(e.pointerId, p);
+  const pos = pointers.get(e.pointerId);
+  if (!pos) return;
+  pos.cx = e.clientX;
+  pos.cy = e.clientY;
   if (!drag) return;
 
-  if (drag.kind === 'move') {
+  if (drag.kind === 'pan') {
+    view.x += e.clientX - drag.x;
+    view.y += e.clientY - drag.y;
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    clampView();
+    applyView();
+  } else if (drag.kind === 'view') {
+    if (pointers.size >= 2) updateView();
+  } else if (drag.kind === 'move') {
     const l = findLayer(drag.id);
     if (!l) return;
     if (drag.pinch && pointers.size >= 2) {
-      const [a, b] = [...pointers.values()];
+      const [a, b] = [...pointers.values()].map((q) => canvasPoint(q.cx, q.cy));
       const pz = drag.pinch;
       const k = dist(a, b) / pz.d0;
       const m = mid(a, b);
@@ -439,6 +759,7 @@ function onPointerMove(e) {
       l.x = pz.x0 + (m.x - pz.m0.x);
       l.y = pz.y0 + (m.y - pz.m0.y);
     } else if (e.pointerId === drag.pointerId) {
+      const p = canvasPoint(e.clientX, e.clientY);
       l.x = drag.x0 + (p.x - drag.start.x);
       l.y = drag.y0 + (p.y - drag.start.y);
       drag.moved = true;
@@ -447,6 +768,7 @@ function onPointerMove(e) {
   } else if (drag.kind === 'draw' && e.pointerId === drag.pointerId) {
     const l = findLayer(drag.id);
     if (!l) return;
+    const p = canvasPoint(e.clientX, e.clientY);
     const last = drag.last;
     drag.stroke.p.push(p.x, p.y);
     drawSegment(ensurePaint(scene, l).getContext('2d'), drag.stroke, last.x, last.y, p.x, p.y);
@@ -458,19 +780,29 @@ function onPointerMove(e) {
 function onPointerEnd(e) {
   if (!pointers.delete(e.pointerId) || !drag) return;
   if (drag.kind === 'draw') {
-    if (e.pointerId === drag.pointerId) {
+    if (e.pointerId === drag.pointerId) finishStroke();
+  } else if (drag.kind === 'view') {
+    if (pointers.size < 2) drag = null;
+  } else if (drag.kind === 'pan') {
+    if (pointers.size === 0) drag = null;
+  } else if (drag.kind === 'move') {
+    if (pointers.size === 0) {
+      const moved = drag.moved;
       drag = null;
-      commit({ list: false, props: false });
+      if (moved) commit({ list: false, props: false });
+    } else if (drag.pinch) {
+      // Een van de twee vingers is los: ga door met slepen op de vinger die nog op het scherm staat.
+      const [id2, pos] = pointers.entries().next().value;
+      const l = findLayer(drag.id);
+      Object.assign(drag, {
+        pinch: null,
+        pointerId: id2,
+        start: canvasPoint(pos.cx, pos.cy),
+        x0: l ? l.x : 0,
+        y0: l ? l.y : 0,
+        moved: true,
+      });
     }
-  } else if (pointers.size === 0) {
-    const moved = drag.moved;
-    drag = null;
-    if (moved) commit({ list: false, props: false });
-  } else if (drag.pinch) {
-    // Een vinger van de twee is los: ga door met slepen op de vinger die nog op het scherm staat.
-    const [id2, q] = pointers.entries().next().value;
-    const l = findLayer(drag.id);
-    Object.assign(drag, { pinch: null, pointerId: id2, start: q, x0: l ? l.x : 0, y0: l ? l.y : 0, moved: true });
   }
   requestRender();
 }
@@ -489,7 +821,7 @@ function syncFields() {
   });
 }
 
-// --- lagenlijst en eigenschappen ---------------------------------------------------
+// --- lagenlijst en eigenschappen ------------------------------------------------------
 
 function renderLayerList() {
   if (!scene.layers.length) {
@@ -503,20 +835,30 @@ function renderLayerList() {
       return `<li class="layer${l.id === scene.selLayerId ? ' is-selected' : ''}" data-id="${l.id}">
         <input type="checkbox" data-act="vis"${l.visible ? ' checked' : ''} aria-label="${esc(l.name)} zichtbaar">
         <button class="layer-name" type="button" data-act="select">
-          <strong>${esc(l.name)}</strong><small>${esc(`${LABELS[l.type]} · ${scope}`)}</small>
+          <strong>${esc(l.name)}</strong><small>${esc(`${LABELS[l.type]}, ${scope}`)}</small>
         </button>
         <span class="layer-btns">
-          <button class="btn icon" type="button" data-act="up" aria-label="Eén laag omhoog">▲</button>
-          <button class="btn icon" type="button" data-act="down" aria-label="Eén laag omlaag">▼</button>
-          <button class="btn icon danger" type="button" data-act="del" aria-label="Laag verwijderen">✕</button>
+          <button class="icon-btn" type="button" data-act="up" aria-label="Eén laag omhoog" title="Omhoog">${icon('up')}</button>
+          <button class="icon-btn" type="button" data-act="down" aria-label="Eén laag omlaag" title="Omlaag">${icon('down')}</button>
+          <button class="icon-btn danger" type="button" data-act="del" aria-label="Laag verwijderen" title="Verwijderen">${icon('close')}</button>
         </span>
       </li>`;
     })
     .join('');
 }
 
+// Kleine pictogrammen (lijnstijl, zoals de rest van de interface).
+function icon(name) {
+  const paths = {
+    up: '<path d="m6 14 6-6 6 6"/>',
+    down: '<path d="m6 10 6 6 6-6"/>',
+    close: '<path d="M7 7l10 10M17 7 7 17"/>',
+  };
+  return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || ''}</svg>`;
+}
+
 const rangeField = (prop, label, value, min, max, unit) =>
-  `<label class="field"><span>${label} <b data-out="${prop}">${Math.round(value)}${unit}</b></span>` +
+  `<label class="field"><span>${label} <b class="mono" data-out="${prop}">${Math.round(value)}${unit}</b></span>` +
   `<input type="range" data-prop="${prop}" data-unit="${unit}" min="${min}" max="${max}" step="1" value="${Math.round(value)}"></label>`;
 
 const colorField = (prop, label, value) =>
@@ -543,7 +885,7 @@ function renderProps() {
       `<div class="row">
         <button class="btn" type="button" data-act="flip">Spiegelen</button>
         <button class="btn" type="button" data-act="fit">Opnieuw passen</button>
-        <button class="btn" type="button" data-act="replace">Andere foto</button>
+        <button class="btn" type="button" data-act="replace">Andere afbeelding</button>
       </div>`;
   } else if (l.type === 'paint') {
     body =
@@ -575,7 +917,7 @@ function renderProps() {
       </div>`;
 
   el.props.innerHTML = `<h3>${esc(l.name)}</h3>${scope}${body}
-    <button class="btn danger" type="button" data-act="delete">Laag verwijderen</button>`;
+    <button class="btn quiet danger" type="button" data-act="delete">Laag verwijderen</button>`;
 }
 
 function setProp(l, key, raw) {
@@ -631,7 +973,8 @@ function onPropClick(e) {
       commit();
       break;
     case 'fit':
-      fitLayer(l);
+      if (l.sticker) fitSticker(l);
+      else fitLayer(l);
       commit();
       break;
     case 'replace':
@@ -674,10 +1017,10 @@ function onLayerChange(e) {
   commit();
 }
 
-// --- foto's, project en export ---------------------------------------------------------
+// --- afbeeldingen: foto's en stickers ----------------------------------------------------
 
-// Verkleint grote foto's en slaat ze op als data-URL, zodat het project later weer opent.
-async function loadAsset(file) {
+// Foto: volledige afbeelding, verkleind tot MAX_PHOTO_SIDE. PNG blijft PNG (transparantie blijft behouden).
+async function loadPhoto(file) {
   const src = URL.createObjectURL(file);
   let img;
   try {
@@ -691,18 +1034,62 @@ async function loadAsset(file) {
   const canvas = makeCanvas(w, h);
   canvas.getContext('2d').drawImage(img, 0, 0, w, h);
   const dataUrl = canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.92);
-  const decoded = await loadImage(dataUrl);
-  return { id: newId('a'), img: decoded, w, h, dataUrl };
+  return { id: newId('a'), img: await loadImage(dataUrl), w, h, dataUrl };
 }
 
-async function onPhotoPicked(e) {
+// Sticker of logo: PNG, WebP of SVG. Transparantie blijft, en lege randen worden bijgesneden.
+async function loadSticker(file) {
+  const src = URL.createObjectURL(file);
+  let img;
+  try {
+    img = await loadImage(src);
+  } finally {
+    URL.revokeObjectURL(src);
+  }
+  const nw = img.naturalWidth || 1024; // SVG zonder afmeting
+  const nh = img.naturalHeight || 1024;
+  const k = Math.min(1, MAX_STICKER_SIDE / Math.max(nw, nh));
+  const w = Math.max(1, Math.round(nw * k));
+  const h = Math.max(1, Math.round(nh * k));
+  const canvas = makeCanvas(w, h);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, w, h);
+  const b = alphaBounds(ctx, w, h);
+  const trimmed = makeCanvas(b.w, b.h);
+  trimmed.getContext('2d').drawImage(canvas, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
+  const dataUrl = trimmed.toDataURL('image/png');
+  return { id: newId('a'), img: await loadImage(dataUrl), w: b.w, h: b.h, dataUrl };
+}
+
+// Het kleinste vak dat alle zichtbare pixels (alpha > 8) omvat.
+function alphaBounds(ctx, w, h) {
+  const d = ctx.getImageData(0, 0, w, h).data;
+  let x0 = w;
+  let y0 = h;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (d[(y * w + x) * 4 + 3] > 8) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+  }
+  if (x1 < 0) return { x: 0, y: 0, w, h };
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+async function pickFile(e, { sticker }) {
   const file = e.target.files[0];
   e.target.value = '';
   if (!file) return;
   try {
-    const asset = await loadAsset(file);
+    const asset = sticker ? await loadSticker(file) : await loadPhoto(file);
     scene.assets.set(asset.id, asset);
-    const target = photoTarget ? findLayer(photoTarget) : null;
+    const target = !sticker && photoTarget ? findLayer(photoTarget) : null;
     photoTarget = null;
     if (target) {
       target.asset = asset.id;
@@ -712,7 +1099,8 @@ async function onPhotoPicked(e) {
       const layer = {
         id: newId('l'),
         type: 'image',
-        name: nextName('image'),
+        name: nextName(sticker ? 'sticker' : 'image'),
+        sticker,
         visible: true,
         opacity: 1,
         panels: scopeNow(),
@@ -724,21 +1112,24 @@ async function onPhotoPicked(e) {
         base: 1,
         flip: false,
       };
-      fitLayer(layer);
+      if (sticker) fitSticker(layer);
+      else fitLayer(layer);
       insertLayer(layer);
     }
     commit();
   } catch (err) {
-    alert(`Foto kon niet worden toegevoegd: ${err.message}`);
+    alert(`Afbeelding kon niet worden toegevoegd: ${err.message}`);
   }
 }
+
+// --- project en export ---------------------------------------------------------------
 
 function saveProject() {
   const assets = {};
   for (const l of scene.layers) {
     if (l.asset && scene.assets.has(l.asset)) assets[l.asset] = { dataUrl: scene.assets.get(l.asset).dataUrl };
   }
-  const data = { format: 'tesla-wrap-project', version: 2, model: current.id, layers: scene.layers, assets };
+  const data = { format: 'tesla-wrap-project', version: 2, model: current ? current.id : null, layers: scene.layers, assets };
   download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `tesla-wrap-project-${stamp()}.json`);
 }
 
@@ -753,9 +1144,9 @@ async function loadProjectFile(e) {
     }
     // Oudere projecten noemden het sjabloon met pad (assets/templates/voyager): de laatste naam is het model.
     const wanted = data.model || String(data.template || '').split('/').pop();
-    if (wanted && wanted !== current.id && models.some((m) => m.id === wanted)) {
-      await selectModel(wanted, { keepDoc: true });
-    }
+    if (!models.some((m) => m.id === wanted)) throw new Error(`het model "${wanted}" bestaat niet meer`);
+    if (hasDesign() && !confirm('Dit project vervangt je huidige ontwerp. Doorgaan?')) return;
+    if (!current || wanted !== current.id) await selectModel(wanted, { keepDoc: true });
     scene.assets.clear();
     for (const [id, a] of Object.entries(data.assets || {})) {
       const img = await loadImage(a.dataUrl);
@@ -767,7 +1158,8 @@ async function loadProjectFile(e) {
     scene.selPanels.clear();
     for (const k of Object.keys(counters)) counters[k] = scene.layers.filter((l) => l.type === k).length;
     history.reset(copyLayers(scene.layers));
-    refresh();
+    setScreen('editor');
+    scheduleSave();
   } catch (err) {
     alert(`Project openen mislukt: ${err.message}`);
   }
@@ -797,8 +1189,7 @@ function showExport(result) {
   const ok = result.checks.every((c) => c.ok);
 
   $('#export-preview').src = exportUrl;
-  $('#export-info').textContent =
-    `${current.name} · ${result.width} × ${result.height} px · ${(result.blob.size / 1024).toFixed(0)} KB · ${result.mode}`;
+  $('#export-info').textContent = `${current.name}, ${result.width} × ${result.height} px, ${(result.blob.size / 1024).toFixed(0)} KB, ${result.mode}`;
   $('#export-checks').innerHTML = result.checks
     .map((c) => `<li class="${c.ok ? 'ok' : 'fail'}"><span>${c.ok ? '✓' : '✗'}</span>${esc(c.label)}</li>`)
     .join('');
@@ -819,6 +1210,7 @@ function showExport(result) {
 // --- toetsenbord en bindingen ---------------------------------------------------------
 
 function onKey(e) {
+  if (screen !== 'editor' || el.dialog.open) return;
   if (e.target.closest('input, textarea, select')) return;
   const mod = e.ctrlKey || e.metaKey;
   const key = e.key.toLowerCase();
@@ -831,6 +1223,9 @@ function onKey(e) {
     redo();
   } else if (mod) {
     return;
+  } else if (e.key === ' ') {
+    ui.space = true;
+    e.preventDefault();
   } else if ((e.key === 'Delete' || e.key === 'Backspace') && scene.selLayerId) {
     e.preventDefault();
     deleteLayer(scene.selLayerId);
@@ -838,26 +1233,50 @@ function onKey(e) {
     scene.selPanels.clear();
     scene.selLayerId = null;
     refresh();
+  } else if (e.key === '+' || e.key === '=') {
+    zoomBy(1.25);
+  } else if (e.key === '-') {
+    zoomBy(1 / 1.25);
+  } else if (e.key === '0') {
+    fitView();
   } else if (TOOL_KEYS[key]) {
     setTool(TOOL_KEYS[key]);
   }
 }
 
-function bindEvents() {
+function setupEvents() {
   document.querySelectorAll('[data-tool]').forEach((b) => b.addEventListener('click', () => setTool(b.dataset.tool)));
+  el.steps.forEach((b) => b.addEventListener('click', () => onStep(b.dataset.step)));
+  el.startBack.addEventListener('click', () => setScreen('editor'));
+  el.grid.addEventListener('click', (e) => {
+    const card = e.target.closest('button[data-model]');
+    if (card) chooseModel(card.dataset.model);
+  });
+  $('#resume-open').addEventListener('click', () => {
+    if (pendingDraft) resumeDraft(pendingDraft);
+  });
+  $('#resume-clear').addEventListener('click', async () => {
+    await clearDraft();
+    pendingDraft = null;
+    el.resume.hidden = true;
+  });
 
-  el.model.addEventListener('change', onModelChange);
   $('#add-fill').addEventListener('click', addFill);
   $('#add-photo').addEventListener('click', () => {
     photoTarget = null;
     el.photoInput.click();
+  });
+  $('#add-sticker').addEventListener('click', () => {
+    el.stickerInput.click();
   });
   $('#add-text').addEventListener('click', () => {
     const [x0, y0, x1, y1] = boundsOf(scene.tpl, scopeNow());
     addText({ x: (x0 + x1) / 2, y: (y0 + y1) / 2 });
   });
   $('#clear-all').addEventListener('click', () => {
-    if (confirm('Alle lagen verwijderen en opnieuw beginnen?')) resetDocument();
+    if (!confirm('Alle lagen verwijderen en opnieuw beginnen?')) return;
+    clearDraft();
+    resetDocument();
   });
   $('#select-all').addEventListener('click', () => {
     scene.selPanels = new Set(scene.tpl.panels.map((p) => p.id));
@@ -870,6 +1289,10 @@ function bindEvents() {
 
   el.size.addEventListener('input', () => {
     el.sizeOut.textContent = el.size.value;
+  });
+  el.symmetry.addEventListener('change', () => {
+    ui.symmetry = el.symmetry.checked;
+    requestRender();
   });
   el.outlines.addEventListener('change', () => {
     ui.outlines = el.outlines.checked;
@@ -885,8 +1308,14 @@ function bindEvents() {
   $('#save-project').addEventListener('click', saveProject);
   $('#open-project').addEventListener('click', () => el.projectInput.click());
   el.projectInput.addEventListener('change', loadProjectFile);
-  el.photoInput.addEventListener('change', onPhotoPicked);
-  $('#export').addEventListener('click', openExport);
+  el.photoInput.addEventListener('change', (e) => pickFile(e, { sticker: false }));
+  el.stickerInput.addEventListener('change', (e) => pickFile(e, { sticker: true }));
+
+  $('#zoom-in').addEventListener('click', () => zoomBy(1.25));
+  $('#zoom-out').addEventListener('click', () => zoomBy(1 / 1.25));
+  $('#zoom-fit').addEventListener('click', fitView);
+  $('#zoom-panel').addEventListener('click', zoomToSelection);
+  el.stage.addEventListener('wheel', onWheel, { passive: false });
 
   el.overlay.addEventListener('pointerdown', onPointerDown);
   el.overlay.addEventListener('pointermove', onPointerMove);
@@ -900,27 +1329,27 @@ function bindEvents() {
   el.props.addEventListener('click', onPropClick);
 
   document.addEventListener('keydown', onKey);
+  document.addEventListener('keyup', (e) => {
+    if (e.key === ' ') ui.space = false;
+  });
+  window.addEventListener('pagehide', saveDraftNow);
+  $('#export').addEventListener('click', openExport);
 }
 
 async function init() {
-  bindEvents();
-  el.sizeOut.textContent = el.size.value;
+  setupEvents();
   setTool('select');
+  el.sizeOut.textContent = el.size.value;
   try {
     const data = await loadModelList();
     models = data.models;
-    fillModelPicker(data);
-    let start = data.default;
-    try {
-      const saved = localStorage.getItem(MODEL_KEY);
-      if (saved && models.some((m) => m.id === saved)) start = saved;
-    } catch {
-      // Geen opslag beschikbaar: het standaardmodel wordt gekozen.
-    }
-    await selectModel(start);
+    await loadCatalog();
+    const draft = await loadDraft();
+    if (draft && !isBlank(draft.layers || []) && models.some((m) => m.id === draft.model)) showResume(draft);
   } catch (err) {
-    el.status.textContent = `Laden mislukt: ${err.message}`;
+    el.startNote.textContent = `Laden mislukt: ${err.message}`;
   }
+  setScreen('start');
 }
 
 init();

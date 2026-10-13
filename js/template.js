@@ -24,6 +24,7 @@ export async function loadTemplate(folder) {
     w,
     h,
     name: meta.name,
+    axis: meta.axis,
     panels: meta.panels,
     byId: new Map(meta.panels.map((p) => [p.id, p])),
     ids,

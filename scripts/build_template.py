@@ -14,12 +14,11 @@ Opties:
 
 Uitvoer in <uitvoermap>:
   mask.png     Grijswaarden-PNG op de sjabloonafmeting. Pixelwaarde = paneel-id (0 = buiten de panelen).
-  panels.json  Naam, afmetingen en per paneel: naam, oppervlakte, bounding box en middelpunt.
+  panels.json  Naam, afmetingen, spiegelas (axis) en per paneel: naam, oppervlakte, bounding box,
+               middelpunt en het spiegelpaneel (mirror, of null als er geen spiegelbeeld is).
 
 Tesla-sjablonen (github.com/teslamotors/custom-wraps) hebben witte, beschrijfbare gebieden op een
 transparante of zwarte achtergrond. Gebruik daarvoor de standaardwaarden.
-Het Voyager-sjabloon is een donkere render zonder alpha. Gebruik daarvoor:
-  --size 1024 1024 --threshold 8 --fill-holes
 """
 import argparse
 import json
@@ -56,6 +55,16 @@ def position_name(cx, cy, w, h):
     vert = "boven" if cy < h / 3 else ("midden" if cy < 2 * h / 3 else "onder")
     horiz = "links" if cx < w / 3 else ("midden" if cx < 2 * w / 3 else "rechts")
     return f"{vert} {horiz}"
+
+
+def mirror_mask(mask, axis):
+    """Spiegelt een masker horizontaal om de lijn x = axis."""
+    w = mask.shape[1]
+    xm = np.round(2 * axis - np.arange(w)).astype(int)
+    valid = (xm >= 0) & (xm < w)
+    out = np.zeros_like(mask)
+    out[:, valid] = mask[:, xm[valid]]
+    return out
 
 
 def main():
@@ -113,10 +122,32 @@ def main():
             "center": [round(float(cx[l]), 1), round(float(cy[l]), 1)],
         })
 
+    # Symmetrie: de spiegelas van het hele voertuig, en per paneel het spiegelpaneel.
+    paint_all = ids > 0
+    candidates = np.arange(w / 2 - 15, w / 2 + 15.01, 0.5)
+    scores = []
+    for a in candidates:
+        m = mirror_mask(paint_all, a)
+        scores.append(np.logical_and(m, paint_all).sum() / max(1, np.logical_or(m, paint_all).sum()))
+    axis = float(candidates[int(np.argmax(scores))])
+    masks = {p["id"]: ids == p["id"] for p in panels}
+    for p in panels:
+        mirrored = mirror_mask(masks[p["id"]], axis)
+        best_id, best_iou = None, 0.0
+        for q in panels:
+            inter = np.logical_and(mirrored, masks[q["id"]]).sum()
+            union = np.logical_or(mirrored, masks[q["id"]]).sum()
+            iou = inter / union if union else 0.0
+            if iou > best_iou:
+                best_id, best_iou = q["id"], iou
+        p["mirror"] = best_id if best_iou >= 0.5 else None
+    print(f"spiegelas x = {axis:.1f}; symmetrie:", ", ".join(f"{p['id']}->{p['mirror']}" for p in panels))
+
     os.makedirs(args.outdir, exist_ok=True)
     Image.fromarray(ids, mode="L").save(os.path.join(args.outdir, "mask.png"), optimize=True)
     with open(os.path.join(args.outdir, "panels.json"), "w", encoding="utf-8") as f:
-        json.dump({"name": args.name, "width": w, "height": h, "panels": panels}, f, ensure_ascii=False, indent=2)
+        json.dump({"name": args.name, "width": w, "height": h, "axis": axis, "panels": panels},
+                  f, ensure_ascii=False, indent=2)
 
     print(f"{len(panels)} panelen ({w} x {h}) geschreven naar {args.outdir}")
     for p in panels:

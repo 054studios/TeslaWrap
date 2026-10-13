@@ -12,7 +12,6 @@
     { "id": "models-2021", "name": "Model S (2021+)", "group": "Model S", "code": "ms-21" },
     { "id": "models-2025-plaid", "name": "Model S (2025+) Plaid", "group": "Model S", "code": "ms-25-plaid" },
     { "id": "modelx-2021", "name": "Model X (2021+)", "group": "Model X", "code": "mx-21" },
-    { "id": "cybertruck", "name": "Cybertruck (1024 × 768)", "group": "Cybertruck", "code": "ct" },
-    { "id": "voyager", "name": "Voyager (eigen sjabloon)", "group": "Overig", "code": "voyager" }
+    { "id": "cybertruck", "name": "Cybertruck", "group": "Cybertruck", "code": "ct" }
   ]
 }

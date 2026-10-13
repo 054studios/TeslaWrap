@@ -6,6 +6,7 @@ import { maskFor } from './template.js';
 export const FONTS = ['Arial Black', 'Impact', 'Georgia', 'Trebuchet MS', 'Verdana', 'Courier New'];
 
 const measureCtx = makeCanvas(4).getContext('2d');
+const hasSym = (s) => typeof s.sym === 'number';
 
 // --- penseelstreken -----------------------------------------------------------
 
@@ -18,9 +19,7 @@ function styleStroke(ctx, s) {
   ctx.lineJoin = 'round';
 }
 
-// Volledige streek, of een stip als er maar één punt is.
-export function drawStroke(ctx, s) {
-  const p = s.p;
+function paintPath(ctx, s, p) {
   ctx.save();
   styleStroke(ctx, s);
   ctx.beginPath();
@@ -35,8 +34,7 @@ export function drawStroke(ctx, s) {
   ctx.restore();
 }
 
-// Alleen het nieuwe stuk, tijdens het tekenen.
-export function drawSegment(ctx, s, x0, y0, x1, y1) {
+function paintSeg(ctx, s, x0, y0, x1, y1) {
   ctx.save();
   styleStroke(ctx, s);
   ctx.beginPath();
@@ -44,6 +42,17 @@ export function drawSegment(ctx, s, x0, y0, x1, y1) {
   ctx.lineTo(x1, y1);
   ctx.stroke();
   ctx.restore();
+}
+
+// Een streek met symmetrie (s.sym = spiegelas) wordt ook op de andere kant getekend.
+export function drawStroke(ctx, s) {
+  paintPath(ctx, s, s.p);
+  if (hasSym(s)) paintPath(ctx, s, s.p.map((v, i) => (i % 2 === 0 ? 2 * s.sym - v : v)));
+}
+
+export function drawSegment(ctx, s, x0, y0, x1, y1) {
+  paintSeg(ctx, s, x0, y0, x1, y1);
+  if (hasSym(s)) paintSeg(ctx, s, 2 * s.sym - x0, y0, 2 * s.sym - x1, y1);
 }
 
 // Canvas van een tekenlaag. Wordt opnieuw opgebouwd uit de streken, bijvoorbeeld na ongedaan maken.
@@ -64,7 +73,7 @@ export function fontOf(layer) {
   return `${layer.bold ? 'bold ' : ''}${layer.size}px "${layer.font}", sans-serif`;
 }
 
-// Halve breedte en hoogte van een fotolaag, in canvas-pixels, na schaal.
+// Halve breedte en hoogte van een foto- of stickerlaag, in canvas-pixels, na schaal.
 export function imageBox(scene, layer) {
   const a = scene.assets.get(layer.asset);
   if (!a) return null;
@@ -87,7 +96,7 @@ function toLocal(layer, x, y) {
   return { lx: dx * c + dy * s, ly: -dx * s + dy * c };
 }
 
-// Bovenste zichtbare foto- of tekstlaag onder het punt, of null.
+// Bovenste zichtbare foto-, sticker- of tekstlaag onder het punt, of null.
 export function hitLayer(scene, x, y) {
   for (let i = scene.layers.length - 1; i >= 0; i--) {
     const l = scene.layers[i];
@@ -200,7 +209,7 @@ function selectionTint(scene) {
   if (scene.tintKey !== key) {
     const c = makeCanvas(scene.w, scene.h);
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(47, 129, 247, 0.45)';
+    ctx.fillStyle = 'rgba(210, 75, 67, 0.4)';
     ctx.fillRect(0, 0, scene.w, scene.h);
     ctx.globalCompositeOperation = 'destination-in';
     ctx.drawImage(maskFor(scene.tpl, ids), 0, 0);
@@ -212,7 +221,7 @@ function selectionTint(scene) {
 
 function drawLabels(scene, c) {
   c.save();
-  c.font = 'bold 22px system-ui, sans-serif';
+  c.font = '600 22px system-ui, sans-serif';
   c.textAlign = 'center';
   c.textBaseline = 'middle';
   c.lineWidth = 5;
@@ -234,8 +243,21 @@ function drawSelectionBox(scene, l, c) {
   c.rotate((l.rot * Math.PI) / 180);
   c.lineWidth = 6;
   c.setLineDash([18, 12]);
-  c.strokeStyle = '#2f81f7';
+  c.strokeStyle = '#d24b43';
   c.strokeRect(-box.hw, -box.hh, box.hw * 2, box.hh * 2);
+  c.restore();
+}
+
+// Stippellijn op de spiegelas, zodat je ziet waar de symmetrie precies ligt.
+function drawAxis(scene, c) {
+  c.save();
+  c.strokeStyle = 'rgba(210, 75, 67, 0.9)';
+  c.lineWidth = 3;
+  c.setLineDash([12, 10]);
+  c.beginPath();
+  c.moveTo(scene.tpl.axis, 0);
+  c.lineTo(scene.tpl.axis, scene.h);
+  c.stroke();
   c.restore();
 }
 
@@ -246,6 +268,7 @@ export function renderOverlay(scene, canvas, opts) {
   if (opts.outlines) c.drawImage(scene.tpl.outline, 0, 0);
   if (scene.selPanels.size) c.drawImage(selectionTint(scene), 0, 0);
   if (opts.labels) drawLabels(scene, c);
+  if (opts.symmetry && typeof scene.tpl.axis === 'number') drawAxis(scene, c);
   const l = scene.layers.find((x) => x.id === scene.selLayerId);
   if (l && l.visible && (l.type === 'image' || l.type === 'text')) drawSelectionBox(scene, l, c);
 }
