@@ -28,6 +28,7 @@ Op de telefoon staat *Foto* in de werkbalk onderaan. Daaronder staat waar de fot
 
 - **Zoomen**: met de knoppen rechtsonder het canvas, het scrollwiel, of "Naar gekozen paneel". Op de telefoon tekent één vinger, en twee vingers knijpen en verschuiven.
 - **Symmetrie**: zet je het aan, dan worden het gekozen paneel en het spiegelpaneel samen gekozen, en wordt een tekening aan beide kanten getekend.
+- **Foto's verplaatsen en draaien**: sleep een gekozen foto (met Selecteer of Verplaats) om te verschuiven. Een hoekje vergroot, het bolletje boven de foto draait. Pijltjes verschuiven (met Shift 10 px), `[` en `]` draaien 5°. Op de telefoon verschuift één vinger; draaien en knijpen doe je met twee vingers, met Verplaats.
 - **Sneltoetsen (pc)**: `S` selecteren, `V` verplaatsen, `B` kwast, `E` gum, `T` tekst. `Ctrl+Z` ongedaan maken, `Ctrl+Y` opnieuw. Houd `Spatie` ingedrukt om te verschuiven. `+` en `-` zoomen, `0` past de wrap in beeld. `Delete` verwijdert de gekozen laag.
 
 ## Modellen

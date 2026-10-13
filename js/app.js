@@ -1,6 +1,6 @@
 // Tesla Wrap Ontwerper: stappen, modelkeuze, editor, zoomen, lagen, symmetrie, opslag en export.
 import { loadTemplate, idAt, boundsOf } from './template.js';
-import { renderWrap, renderOverlay, ensurePaint, drawStroke, drawSegment, hitLayer, FONTS } from './render.js';
+import { renderWrap, renderOverlay, ensurePaint, drawStroke, drawSegment, hitLayer, FONTS, toLocal, transformHandles, imageBox, textBox } from './render.js';
 import { History, copyLayers } from './model.js';
 import { exportWrap } from './export.js';
 import { saveDraft, loadDraft, clearDraft } from './store.js';
@@ -20,6 +20,12 @@ const TOOL_HINTS = {
   text: 'Tik op de wrap om een tekstlaag te plaatsen.',
 };
 const TOOL_KEYS = { s: 'select', v: 'move', b: 'brush', e: 'eraser', t: 'text' };
+const ARROW_STEP = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+const GRIP_PX = 20; // hoe dicht bij een hoekje of het draaibolletje je moet komen (schermpixels)
+const DRAG_PX = 4; // vanaf zoveel schermpixels is een klik een sleep
+const wrapDeg = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
+// Hoekverschil in radialen, teruggebracht naar −π…π, zodat een draai over de grens van ±180° niet springt.
+const wrapRad = (r) => Math.atan2(Math.sin(r), Math.cos(r));
 
 const $ = (sel) => document.querySelector(sel);
 const el = {
@@ -335,7 +341,7 @@ function updateStatus() {
   el.modelName.textContent = scene.tpl ? scene.tpl.name : '';
   el.panelCount.textContent = scene.tpl ? `${scene.tpl.panels.length} panelen` : '';
   el.selCount.textContent = n ? `${n} gekozen` : 'Geen paneel gekozen';
-  el.hint.textContent = TOOL_HINTS[ui.tool] || '';
+  el.hint.textContent = transformHint() || TOOL_HINTS[ui.tool] || '';
   el.scopeNote.textContent = n
     ? 'Nieuwe lagen komen op de gekozen panelen.'
     : 'Nieuwe lagen komen op de hele wrap. Kies eerst panelen om ze daarop te zetten.';
@@ -675,6 +681,88 @@ function startPinch() {
   drag.moved = true;
 }
 
+// Canvas-pixels per schermpixel: zo blijven greepjes en drempels even groot als je inzoomt.
+function pxScale() {
+  const w = el.overlay.getBoundingClientRect().width;
+  return w ? scene.w / w : 1;
+}
+
+// De gekozen laag is een foto, sticker of tekst, en dus te verplaatsen en te draaien.
+function selMovable() {
+  const l = selLayer();
+  return !!l && l.visible && (l.type === 'image' || l.type === 'text');
+}
+
+// Greep op een hoekje (vergroten) of het draaibolletje (draaien) van de gekozen laag, of null.
+function gripAt(p) {
+  if (!selMovable()) return null;
+  const h = transformHandles(scene, selLayer(), pxScale());
+  if (!h) return null;
+  const near = (q) => Math.hypot(p.x - q.x, p.y - q.y) <= GRIP_PX * pxScale();
+  const corner = h.corners.find(near);
+  if (corner) return { kind: 'scale', layer: selLayer(), corner };
+  if (near(h.rotate)) return { kind: 'rotate', layer: selLayer() };
+  return null;
+}
+
+// Ligt het punt binnen de kaders van de gekozen laag?
+function insideSelected(p) {
+  if (!selMovable()) return false;
+  const l = selLayer();
+  const box = l.type === 'image' ? imageBox(scene, l) : textBox(l);
+  if (!box) return false;
+  const { lx, ly } = toLocal(l, p.x, p.y);
+  return Math.abs(lx) <= box.hw && Math.abs(ly) <= box.hh;
+}
+
+// Het selectiegereedschap op de gekozen laag: een klik kiest nog steeds een paneel, een sleep verplaatst de laag.
+function beginPending(p, e) {
+  const l = selLayer();
+  drag = {
+    kind: 'pending',
+    id: l.id,
+    pointerId: e.pointerId,
+    p0: p,
+    cx: e.clientX,
+    cy: e.clientY,
+    x0: l.x,
+    y0: l.y,
+    mods: { shiftKey: e.shiftKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey },
+  };
+}
+
+// Vergroten (hoekje) of draaien (bolletje). Het middelpunt van de laag blijft op zijn plek.
+function beginTransform(grip, p, e) {
+  const l = grip.layer;
+  const c = { x: l.x, y: l.y };
+  const base = { kind: grip.kind, id: l.id, pointerId: e.pointerId, moved: false, c, zoom0: l.zoom, size0: l.size, rot0: l.rot };
+  drag = grip.kind === 'scale' ? { ...base, d0: dist(c, grip.corner) } : { ...base, a0: angle(c, p) };
+}
+
+// Tijdens vergroten of draaien volgt de laag de vinger of de muis.
+function updateTransform(p) {
+  const l = findLayer(drag.id);
+  if (!l) return;
+  const { c } = drag;
+  if (drag.kind === 'scale') {
+    const k = dist(c, p) / drag.d0;
+    if (l.type === 'text') l.size = clamp(drag.size0 * k, 16, 500);
+    else l.zoom = clamp(drag.zoom0 * k, 0.1, 6);
+  } else {
+    l.rot = wrapDeg(drag.rot0 + (wrapRad(angle(c, p) - drag.a0) * 180) / Math.PI);
+  }
+  drag.moved = true;
+  syncFields();
+}
+
+// Tip bij de gekozen foto, sticker of tekst: wat je ermee kunt doen.
+function transformHint() {
+  if (!selMovable() || !['select', 'move'].includes(ui.tool)) return '';
+  const l = selLayer();
+  const what = l.type === 'text' ? 'tekst' : l.sticker ? 'sticker' : 'foto';
+  return `Sleep de ${what} om te verschuiven. Een hoekje vergroot, het bolletje draait. Pijltjes en [ ] stellen fijn bij.`;
+}
+
 // Een streek met symmetrie aan krijgt de spiegelas mee, zodat hij ook op de andere kant getekend wordt.
 function beginStroke(p, pointerId, erase) {
   let layer = selLayer();
@@ -710,10 +798,13 @@ function onPointerDown(e) {
   pointers.set(e.pointerId, { cx: e.clientX, cy: e.clientY });
 
   if (pointers.size >= 2) {
-    if (drag && drag.kind === 'move' && drag.pinch === null && ui.tool === 'move') startPinch();
-    else {
-      if (drag && drag.kind === 'draw') finishStroke();
-      beginView();
+    const transforming = drag && (drag.kind === 'scale' || drag.kind === 'rotate');
+    if (!transforming) {
+      if (drag && drag.kind === 'move' && drag.pinch === null && ui.tool === 'move') startPinch();
+      else {
+        if (drag && drag.kind === 'draw') finishStroke();
+        beginView();
+      }
     }
     requestRender();
     return;
@@ -724,9 +815,16 @@ function onPointerDown(e) {
     return;
   }
   const p = canvasPoint(e.clientX, e.clientY);
+  const grip = ui.tool === 'select' || ui.tool === 'move' ? gripAt(p) : null;
+  if (grip) {
+    beginTransform(grip, p, e);
+    requestRender();
+    return;
+  }
   switch (ui.tool) {
     case 'select':
-      pickPanel(p, e);
+      if (insideSelected(p)) beginPending(p, e);
+      else pickPanel(p, e);
       break;
     case 'move':
       beginMove(p, e);
@@ -751,6 +849,10 @@ function onPointerMove(e) {
   pos.cx = e.clientX;
   pos.cy = e.clientY;
   if (!drag) return;
+  // Een klik op de gekozen laag wordt een sleep zodra de vinger of muis echt beweegt.
+  if (drag.kind === 'pending' && e.pointerId === drag.pointerId && Math.hypot(e.clientX - drag.cx, e.clientY - drag.cy) > DRAG_PX) {
+    drag = { kind: 'move', id: drag.id, pointerId: drag.pointerId, start: drag.p0, x0: drag.x0, y0: drag.y0, moved: false, pinch: null };
+  }
 
   if (drag.kind === 'pan') {
     view.x += e.clientX - drag.x;
@@ -771,7 +873,7 @@ function onPointerMove(e) {
       const m = mid(a, b);
       if (l.type === 'text') l.size = clamp(pz.size0 * k, 16, 500);
       else l.zoom = clamp(pz.zoom0 * k, 0.1, 6);
-      l.rot = pz.rot0 + ((angle(a, b) - pz.a0) * 180) / Math.PI;
+      l.rot = wrapDeg(pz.rot0 + (wrapRad(angle(a, b) - pz.a0) * 180) / Math.PI);
       l.x = pz.x0 + (m.x - pz.m0.x);
       l.y = pz.y0 + (m.y - pz.m0.y);
     } else if (e.pointerId === drag.pointerId) {
@@ -781,6 +883,8 @@ function onPointerMove(e) {
       drag.moved = true;
     }
     syncFields();
+  } else if (drag.kind === 'scale' || drag.kind === 'rotate') {
+    if (e.pointerId === drag.pointerId) updateTransform(canvasPoint(e.clientX, e.clientY));
   } else if (drag.kind === 'draw' && e.pointerId === drag.pointerId) {
     const l = findLayer(drag.id);
     if (!l) return;
@@ -795,7 +899,20 @@ function onPointerMove(e) {
 
 function onPointerEnd(e) {
   if (!pointers.delete(e.pointerId) || !drag) return;
-  if (drag.kind === 'draw') {
+  if (drag.kind === 'pending') {
+    if (e.pointerId === drag.pointerId) {
+      const { p0, mods } = drag;
+      drag = null;
+      // Zonder sleep was het gewoon een klik: kies dan het paneel onder de vinger.
+      if (e.type === 'pointerup') pickPanel(p0, mods);
+    }
+  } else if (drag.kind === 'scale' || drag.kind === 'rotate') {
+    if (e.pointerId === drag.pointerId) {
+      const moved = drag.moved;
+      drag = null;
+      if (moved) commit({ list: false, props: false });
+    }
+  } else if (drag.kind === 'draw') {
     if (e.pointerId === drag.pointerId) finishStroke();
   } else if (drag.kind === 'view') {
     if (pointers.size < 2) drag = null;
@@ -1298,6 +1415,21 @@ function onKey(e) {
     zoomBy(1 / 1.25);
   } else if (e.key === '0') {
     fitView();
+  } else if (ARROW_STEP[e.key] && selMovable()) {
+    e.preventDefault();
+    const [dx, dy] = ARROW_STEP[e.key];
+    const step = e.shiftKey ? 10 : 1;
+    const l = selLayer();
+    l.x += dx * step;
+    l.y += dy * step;
+    syncFields();
+    commit({ list: false, props: false });
+  } else if ((e.key === '[' || e.key === ']') && selMovable()) {
+    e.preventDefault();
+    const l = selLayer();
+    l.rot = wrapDeg(l.rot + (e.key === ']' ? 5 : -5));
+    syncFields();
+    commit({ list: false, props: false });
   } else if (TOOL_KEYS[key]) {
     setTool(TOOL_KEYS[key]);
   }

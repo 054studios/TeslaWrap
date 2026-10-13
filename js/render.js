@@ -87,13 +87,35 @@ export function textBox(layer) {
 }
 
 // Punt (x, y) in de lokale coördinaten van de laag (zonder verschuiving en rotatie).
-function toLocal(layer, x, y) {
+export function toLocal(layer, x, y) {
   const dx = x - layer.x;
   const dy = y - layer.y;
   const t = (layer.rot * Math.PI) / 180;
   const c = Math.cos(t);
   const s = Math.sin(t);
   return { lx: dx * c + dy * s, ly: -dx * s + dy * c };
+}
+
+// Canvas-punt van een punt in de lokale ruimte van de laag (rotatie om het middelpunt).
+export function localToWorld(layer, lx, ly) {
+  const t = (layer.rot * Math.PI) / 180;
+  const c = Math.cos(t);
+  const s = Math.sin(t);
+  return { x: layer.x + lx * c - ly * s, y: layer.y + lx * s + ly * c };
+}
+
+// Hoekjes (vergroten) en het draaibolletje (draaien) van een foto-, sticker- of tekstlaag, in canvas-coördinaten.
+// px = canvas-pixels per schermpixel, zodat de greepjes op het scherm even groot blijven.
+export function transformHandles(scene, layer, px) {
+  const box = layer.type === 'image' ? imageBox(scene, layer) : textBox(layer);
+  if (!box) return null;
+  const { hw, hh } = box;
+  return {
+    box,
+    corners: [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([x, y]) => localToWorld(layer, x, y)),
+    top: localToWorld(layer, 0, -hh),
+    rotate: localToWorld(layer, 0, -hh - 36 * px),
+  };
 }
 
 // Bovenste zichtbare foto-, sticker- of tekstlaag onder het punt, of null.
@@ -235,17 +257,38 @@ function drawLabels(scene, c) {
   c.restore();
 }
 
-function drawSelectionBox(scene, l, c) {
-  const box = l.type === 'image' ? imageBox(scene, l) : textBox(l);
-  if (!box) return;
+// Gestippeld kader om de gekozen laag. Met Selecteer of Verplaats ook de greepjes: hoekjes en het draaibolletje.
+function drawSelectionBox(scene, l, c, px, grips) {
+  const h = transformHandles(scene, l, px);
+  if (!h) return;
   c.save();
   c.translate(l.x, l.y);
   c.rotate((l.rot * Math.PI) / 180);
   c.lineWidth = 6;
   c.setLineDash([18, 12]);
   c.strokeStyle = '#d24b43';
-  c.strokeRect(-box.hw, -box.hh, box.hw * 2, box.hh * 2);
+  c.strokeRect(-h.box.hw, -h.box.hh, h.box.hw * 2, h.box.hh * 2);
   c.restore();
+  if (!grips) return;
+  c.save();
+  c.strokeStyle = '#d24b43';
+  c.lineWidth = 3 * px;
+  c.beginPath();
+  c.moveTo(h.top.x, h.top.y);
+  c.lineTo(h.rotate.x, h.rotate.y);
+  c.stroke();
+  c.fillStyle = '#fff';
+  for (const p of h.corners) dot(c, p, 9 * px);
+  c.fillStyle = '#d24b43';
+  dot(c, h.rotate, 10 * px);
+  c.restore();
+}
+
+function dot(c, p, r) {
+  c.beginPath();
+  c.arc(p.x, p.y, r, 0, Math.PI * 2);
+  c.fill();
+  c.stroke();
 }
 
 // Stippellijn op de spiegelas, zodat je ziet waar de symmetrie precies ligt.
@@ -270,5 +313,8 @@ export function renderOverlay(scene, canvas, opts) {
   if (opts.labels) drawLabels(scene, c);
   if (opts.symmetry && typeof scene.tpl.axis === 'number') drawAxis(scene, c);
   const l = scene.layers.find((x) => x.id === scene.selLayerId);
-  if (l && l.visible && (l.type === 'image' || l.type === 'text')) drawSelectionBox(scene, l, c);
+  if (l && l.visible && (l.type === 'image' || l.type === 'text')) {
+    const w = canvas.getBoundingClientRect().width;
+    drawSelectionBox(scene, l, c, w ? scene.w / w : 1, opts.tool === 'select' || opts.tool === 'move');
+  }
 }
