@@ -1,6 +1,6 @@
 # Ontwerp van de startpagina
 
-Visuele beslissingen voor de startpagina (`/`), met de bron van elke regel. De editor (`/ontwerp/`) gebruikt dezelfde kleuren, hetzelfde lettertype en dezelfde beweging, en is in dit herontwerp niet veranderd.
+Visuele beslissingen voor de startpagina (`/`), met de bron van elke regel. De editor (`/ontwerp/`) gebruikt sinds de tweede ronde hetzelfde palet, dezelfde vormen en dezelfde pictogrammen; zie het kopje Editor.
 
 ## Status
 
@@ -18,6 +18,7 @@ Visuele beslissingen voor de startpagina (`/`), met de bron van elke regel. De e
 | Redesign `redesign-skill/SKILL.md` | volledig |
 | Anthropic frontend-design | volledig |
 | Emil Kowalski: emil-design-eng, animate, animation-performance | volledig |
+| Vercel web interface guidelines (`vercel-labs/web-interface-guidelines`, `command.md`) | alleen als samenvatting opgehaald; de woordelijke tekst kwam niet terug |
 
 Niet gedraaid: de Impeccable-launcher en de detector (`scripts/impeccable`). De launcher downloadt bij de eerste keer een binary; dat hebben we niet gedaan zonder akkoord. De skill beschrijft daarvoor een terugval: lees PRODUCT.md en DESIGN.md zelf. Die bestaan in deze repo niet, en we hebben ze niet verzonnen. Er is daarom geen `.impeccable/`-map.
 
@@ -149,6 +150,18 @@ Getest op 320, 390, 768, 1024, 1280 en 1440 px zonder horizontale scroll. De pri
 - Lange talen getest: EN, DE, FR en TR op 390, 768, 1024 en 1440 px, zonder overloop en met de kop op twee regels. Duits gaf eerst drie regels op pc; daarom is de kop op pc maximaal 52 px.
 - Geen em- of en-streepjes in zichtbare tekst. Gecontroleerd in HTML, CSS, JavaScript en de vier vertalingen.
 
+## Editor
+
+De editor (`/ontwerp/`) is een dichte productinterface. Taste (sectie 13) sluit die uit, daarom nemen we geen componentbibliotheek over. We passen alleen de regels voor kleur, typografie, vormen, toestanden, pictogrammen en beweging toe, en de toegankelijkheidsregels van de Vercel-richtlijnen.
+
+- **Palet:** dezelfde tokens als de startpagina. Het accent is `#b8443d`. Tekst op een primaire knop is `#eef1f5`, niet wit (Taste 8.B).
+- **Vormen:** besturing 12 px, vlakken 16 px (Taste 4.4). Pillen zijn een vastgelegde uitzondering voor de chips, de stappenschakelaar en de zoombalk.
+- **Pictogrammen:** alle pictogrammen van de editor, ook die in JavaScript, komen uit één sprite (`img/icons.svg`, Tabler Icons, MIT). Lijndikte 1,75 px. De licentie staat in `img/LICENSE-Tabler.txt`.
+- **Geen decoratieve blur:** de bovenbalk en de zoombalk zijn effen (Taste 9.A). De schaduw is getint.
+- **Bovenbalk:** scheidingen tussen de groepen. Op een telefoon staan de taalkeuze en de knoppen op één regel. Op 400 px of minder heeft alleen de actieve stap een zichtbare naam; de andere namen blijven voor schermlezers.
+- **Toegankelijkheid:** `touch-action: manipulation` op knoppen en links; `overscroll-behavior: contain` in de dialoog; de exportvoorbeeld heeft afmetingen; `theme-color` is gelijk aan de achtergrond; een niet-brekende spatie tussen getal en "px".
+- **Uitzonderingen:** het wrapvlak en de exportvoorbeeld zijn zwart. Dat is de inhoud van de Tesla-PNG, geen interface.
+
 ## Beslissingen bij botsende bronnen
 
 | Onderwerp | Bron A | Bron B | Besluit |
@@ -164,6 +177,10 @@ Getest op 320, 390, 768, 1024, 1280 en 1440 px zonder horizontale scroll. De pri
 | Kaarten | Taste 4.4: kaarten alleen als verhoging hiërarchie toont | de bento heeft cellen | de bento-cellen zijn de enige vlakken; formaten verschillen en er zijn geen geneste kaarten |
 | Rode knop op elke kaart | Anthropic: "spend your boldness in one place" | | neutrale knop; rood blijft voor de primaire actie |
 | Logo | eerder: een embleem dat op het Tesla-T lijkt (handelsmerkrisico) | | streepmerk op een afgeronde vierkant, ook als favicon |
+| Titels | Vercel: Title Case op koppen en knoppen | redesign-skill en Taste: zinsconstructie | zinsconstructie; Title Case past niet bij Nederlandse tekst |
+| Taal bij het eerste bezoek | Vercel: taal uit `navigator.languages`, niet uit het IP | jouw keuze: eerst het land (Turkije geeft Turks) | het land blijft eerst; een bewuste afwijking van Vercel |
+| Pictogrammen | Taste: "NEVER hand-roll SVG icons" | eerdere handgetekende pictogrammen | Tabler Icons in één sprite |
+| Dichte productinterface | Taste sectie 13: uitgesloten | verzoek om de editor te verbeteren | alleen de toepasselijke regels; geen componentbibliotheek |
 
 ## Verificatie
 
@@ -175,7 +192,9 @@ Getest op 320, 390, 768, 1024, 1280 en 1440 px zonder horizontale scroll. De pri
 | `check_langs_redesign.js` (EN, DE, FR, TR op vier breedtes) | alles geslaagd |
 | `scripts/check_i18n.py` | 241/241 in EN, DE, FR en TR |
 | `e2e_i18n.js`, `e2e_designs.js` | alles geslaagd |
-| `e2e_v2.js`, `e2e_photo.js`, `e2e_transform.js` (editor, ongewijzigd) | alles geslaagd |
+| `e2e_v2.js`, `e2e_photo.js`, `e2e_transform.js` (editor, na de visuele wijzigingen) | alles geslaagd |
+| Overloop editor op telefoon | 0 px op 390 px en 0 px op 320 px |
+| Bovenbalk editor op telefoon | 109 px op 390 px; 155 px op 320 px |
 
 ## Niet gecontroleerd
 
@@ -185,4 +204,6 @@ Getest op 320, 390, 768, 1024, 1280 en 1440 px zonder horizontale scroll. De pri
 - Vertalingen EN, DE, FR en TR: door ons gemaakt, niet door een moedertaalspreker gecontroleerd.
 - Uploaden van de PNG in de Tesla-app: niet geverifieerd.
 - Open Graph-tags: niet toegevoegd, omdat de productie-URL niet bekend is.
+- Vercel-regels: alleen als samenvatting gelezen; de woordelijke tekst is niet nagelopen.
+- Editor: niet op echte telefoons getest, en het toetsenbord op het wrapvlak niet opnieuw nagelopen.
 - Impeccable: de detector, de launcher, de documenter (token-schema en `design.json`) en de finish-review door een aparte reviewer zijn niet gedraaid. Het FINISH-criterium van new-work §5 is daarmee nog niet gehaald.

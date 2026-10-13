@@ -1105,12 +1105,8 @@ function renderLayerList() {
 
 // Kleine pictogrammen (lijnstijl, zoals de rest van de interface).
 function icon(name) {
-  const paths = {
-    up: '<path d="m6 14 6-6 6 6"/>',
-    down: '<path d="m6 10 6 6 6-6"/>',
-    close: '<path d="M7 7l10 10M17 7 7 17"/>',
-  };
-  return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || ''}</svg>`;
+  const symbols = { up: 'chevron-up', down: 'chevron-down', close: 'x' };
+  return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-${symbols[name] || 'x'}"/></svg>`;
 }
 
 const rangeField = (prop, label, value, min, max, unit) =>

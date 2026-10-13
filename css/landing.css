@@ -381,9 +381,13 @@ select {
 /* --- autokeuze: een lijst per auto, met het silhouet van elk model ------- */
 
 .model-groups {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 56px 72px;
+  columns: 2;
+  column-gap: 72px;
+}
+
+.model-group {
+  break-inside: avoid;
+  margin-bottom: 56px;
 }
 
 .model-group h3 {
@@ -742,7 +746,10 @@ select {
 }
 
 @media (max-width: 760px) {
-  .model-groups,
+  .model-groups {
+    columns: 1;
+  }
+
   .steps {
     grid-template-columns: 1fr;
   }
@@ -842,4 +849,20 @@ select {
   html {
     scroll-behavior: smooth;
   }
+}
+
+/* Ankers springen niet onder de vaste kop; aanraken reageert meteen. */
+html {
+  scroll-padding-top: 88px;
+}
+
+section[id] {
+  scroll-margin-top: 88px;
+}
+
+a,
+button,
+select,
+summary {
+  touch-action: manipulation;
 }

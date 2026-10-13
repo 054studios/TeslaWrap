@@ -5,7 +5,7 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Ontwerp je eigen Tesla-wrap en exporteer hem als PNG, klaar voor de Tesla-app.">
-  <meta name="theme-color" content="#0f1217">
+  <meta name="theme-color" content="#181b21">
   <title>Tesla Wrap Ontwerper</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/style.css">
@@ -26,19 +26,21 @@
     <select class="lang-select" data-lang-select aria-label="Taal"></select>
     <div class="top-actions">
       <button class="icon-btn" id="undo" type="button" aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl+Z)" disabled>
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-arrow-back-up"/></svg>
       </button>
       <button class="icon-btn" id="redo" type="button" aria-label="Opnieuw" title="Opnieuw (Ctrl+Y)" disabled>
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-arrow-forward-up"/></svg>
       </button>
+      <span class="top-sep" aria-hidden="true"></span>
       <button class="btn quiet" id="save-project" type="button" title="Project opslaan als bestand">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-download"/></svg>
         <span class="hide-sm">Project opslaan</span>
       </button>
       <button class="btn quiet" id="open-project" type="button" title="Project openen uit bestand">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-folder-open"/></svg>
         <span class="hide-sm">Project openen</span>
       </button>
+      <span class="top-sep" aria-hidden="true"></span>
       <button class="btn primary" id="export" type="button" disabled><span class="hide-sm">Exporteren als PNG</span><span class="show-sm">PNG</span></button>
     </div>
   </header>
@@ -67,26 +69,26 @@
     <aside class="tools card" aria-label="Gereedschap">
       <div class="tool-list" role="group" aria-label="Gereedschap">
         <button class="tool" type="button" data-tool="select" aria-pressed="true">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18 11l-5.5 1.5L10 18z"/></svg><span>Selecteer</span>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-pointer"/></svg><span>Selecteer</span>
         </button>
         <button class="tool" type="button" data-tool="move" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span>Verplaats</span>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-arrows-move"/></svg><span>Verplaats</span>
         </button>
         <button class="tool" type="button" data-tool="brush" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4 10 13"/><path d="M9.5 13.5a3 3 0 0 0-3 3c-.6 1.6-1.5 2.5-3.5 3 2.5 1.2 6 .8 7.5-1.2a3 3 0 0 0-1-4.8z"/></svg><span>Kwast</span>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-brush"/></svg><span>Kwast</span>
         </button>
         <button class="tool" type="button" data-tool="eraser" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 16-3.5-3.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19.5H9z"/><path d="m9.5 9.5 6 6"/></svg><span>Gum</span>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-eraser"/></svg><span>Gum</span>
         </button>
         <button class="tool" type="button" data-tool="text" aria-pressed="false">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/></svg><span>Tekst</span>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-typography"/></svg><span>Tekst</span>
         </button>
       </div>
 
       <details open>
         <summary>Kleur en dikte</summary>
         <label class="field"><span>Kleur</span><input type="color" id="color" value="#d24b43"></label>
-        <label class="field"><span>Dikte <b class="mono" id="size-out">24</b> px</span><input type="range" id="size" min="4" max="200" value="24"></label>
+        <label class="field"><span>Dikte <b class="mono" id="size-out">24</b>&nbsp;px</span><input type="range" id="size" min="4" max="200" value="24"></label>
       </details>
 
       <details open>
@@ -124,17 +126,17 @@
         </div>
         <div class="zoom" role="toolbar" aria-label="Zoom">
           <button class="icon-btn" id="zoom-out" type="button" aria-label="Uitzoomen" title="Uitzoomen (-)">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-minus"/></svg>
           </button>
           <output class="mono" id="zoom-level">100%</output>
           <button class="icon-btn" id="zoom-in" type="button" aria-label="Inzoomen" title="Inzoomen (+)">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-plus"/></svg>
           </button>
           <button class="icon-btn" id="zoom-fit" type="button" aria-label="Hele wrap in beeld" title="Hele wrap (0)">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-maximize"/></svg>
           </button>
           <button class="icon-btn" id="zoom-panel" type="button" aria-label="Naar gekozen paneel zoomen" title="Naar gekozen paneel">
-            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21"/></svg>
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-focus-2"/></svg>
           </button>
         </div>
       </div>
@@ -161,22 +163,22 @@
 
     <nav class="mobile-tools" aria-label="Gereedschap op de telefoon">
       <button class="tool" type="button" data-tool="select" aria-pressed="true">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18 11l-5.5 1.5L10 18z"/></svg><span>Selecteer</span>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-pointer"/></svg><span>Selecteer</span>
       </button>
       <button class="tool" type="button" data-tool="move" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span>Verplaats</span>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-arrows-move"/></svg><span>Verplaats</span>
       </button>
       <button class="tool" type="button" data-tool="brush" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4 10 13"/><path d="M9.5 13.5a3 3 0 0 0-3 3c-.6 1.6-1.5 2.5-3.5 3 2.5 1.2 6 .8 7.5-1.2a3 3 0 0 0-1-4.8z"/></svg><span>Kwast</span>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-brush"/></svg><span>Kwast</span>
       </button>
       <button class="tool" type="button" data-tool="eraser" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 16-3.5-3.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19.5H9z"/><path d="m9.5 9.5 6 6"/></svg><span>Gum</span>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-eraser"/></svg><span>Gum</span>
       </button>
       <button class="tool" type="button" data-tool="text" aria-pressed="false">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/></svg><span>Tekst</span>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-typography"/></svg><span>Tekst</span>
       </button>
       <button class="tool" type="button" id="mobile-photo">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5.5-5.5L8 18"/></svg><span>Foto</span><small id="mobile-photo-scope">hele wrap</small>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-photo"/></svg><span>Foto</span><small id="mobile-photo-scope">hele wrap</small>
       </button>
     </nav>
   </div>
@@ -185,11 +187,11 @@
     <form method="dialog" class="export-head">
       <h2 id="export-title">Exporteren</h2>
       <button class="icon-btn" value="close" aria-label="Sluiten">
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><use href="img/icons.svg#i-x"/></svg>
       </button>
     </form>
     <div class="export-body">
-      <img id="export-preview" alt="Voorbeeld van je wrap">
+      <img id="export-preview" width="1024" height="1024" alt="Voorbeeld van je wrap">
       <p class="muted small" id="export-info"></p>
       <ul class="checks" id="export-checks"></ul>
       <p class="muted small">Upload dit bestand daarna in de Tesla-app: Creations, Wrap, Upload (vanaf versie 4.59.0).</p>
