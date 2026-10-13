@@ -194,8 +194,15 @@ h3 {
 
 .top-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 6px;
+}
+
+/* Korte tekst die alleen op de telefoon zichtbaar is (zie hide-sm). */
+.show-sm {
+  display: none;
 }
 
 /* --- knoppen, pictogrammen en velden ----------------------------------------------- */
@@ -952,6 +959,10 @@ dialog::backdrop {
     display: none;
   }
 
+  .show-sm {
+    display: inline;
+  }
+
   .top-actions .btn {
     padding: 0 10px;
   }
@@ -1062,11 +1073,12 @@ a.brand {
   }
 }
 
-/* Taalkeuze in de kop. */
+/* Taalkeuze in de kop. Krimpt niet, zodat de naam leesbaar blijft. */
 .lang-select {
+  flex-shrink: 0;
   height: 34px;
-  max-width: 132px;
-  padding: 0 8px;
+  max-width: 112px;
+  padding: 0 6px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-2);

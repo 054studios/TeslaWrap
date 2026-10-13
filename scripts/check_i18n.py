@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 HTML_FILES = ['index.html', 'ontwerp/index.html']
 TEXT_ATTRS = {'aria-label', 'title', 'alt', 'placeholder'}
 # Teksten zonder vertaling: de merknaam en eenheden.
-IGNORE = {'Tesla Wrap', 'px', 'teslamotors/custom-wraps'}
+IGNORE = {'Tesla Wrap', 'px', 'PNG', 'teslamotors/custom-wraps'}
 # Teksten die als waarde van een constante of variabele naar t() gaan (LABELS, TOOL_HINTS, HINT_*),
 # en daarom niet als letterlijke t('...')-aanroep in de code staan. Het script controleert dat ze
 # in de JavaScript voorkomen, zodat deze lijst niet ongemerkt verouderd.

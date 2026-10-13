@@ -417,11 +417,12 @@ p {
   }
 }
 
-/* Taalkeuze in de kop. */
+/* Taalkeuze in de kop. Krimpt niet, zodat de naam leesbaar blijft. */
 .lang-select {
+  flex-shrink: 0;
   height: 34px;
-  max-width: 132px;
-  padding: 0 8px;
+  max-width: 112px;
+  padding: 0 6px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-2);
