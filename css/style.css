@@ -1061,3 +1061,17 @@ a.brand {
     font-size: 12px;
   }
 }
+
+/* Taalkeuze in de kop. */
+.lang-select {
+  height: 34px;
+  max-width: 132px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}

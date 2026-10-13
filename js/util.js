@@ -1,5 +1,7 @@
 // Kleine hulpfuncties, gedeeld door de modules.
 
+import { t } from './i18n.js';
+
 export function makeCanvas(width, height = width) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -11,7 +13,7 @@ export function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('afbeelding kon niet worden geladen (probeer een JPG of PNG)'));
+    img.onerror = () => reject(new Error(t('afbeelding kon niet worden geladen (probeer een JPG of PNG)')));
     img.src = src;
   });
 }

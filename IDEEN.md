@@ -29,4 +29,3 @@ Nog niet gebouwd. De volgorde is een voorstel.
 
 - **Installeerbaar** als app op de telefoon, en offline werken (PWA).
 - **Voorbeeld op een 3D-auto.** Dat vraagt een extra library; de site gebruikt nu geen externe libraries.
-- **Extra talen**, zoals Engels en Duits.

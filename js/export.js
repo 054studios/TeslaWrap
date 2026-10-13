@@ -1,5 +1,7 @@
 // PNG-export voor de Tesla-app: de afmeting van het sjabloon, zwart buiten de panelen, maximaal 1 MB.
 
+import { t } from './i18n.js';
+
 export const MAX_BYTES = 1_000_000;
 const PNG_SIGNATURE = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);
 
@@ -17,9 +19,9 @@ export async function exportWrap(canvas, tpl) {
 
   const { blob, mode } = await encodeWrap(canvas, px);
   const checks = [
-    { ok: W === tpl.w && H === tpl.h, label: `Formaat ${W} × ${H} px (gelijk aan het sjabloon)` },
-    { ok: outsideBlack, label: 'Zwart tussen en rond de panelen (ook de rand)' },
-    { ok: blob.size <= MAX_BYTES, label: `Bestandsgrootte ${(blob.size / 1024).toFixed(0)} KB (max. 1 MB)` },
+    { ok: W === tpl.w && H === tpl.h, label: t('Formaat {w} × {h} px (gelijk aan het sjabloon)', { w: W, h: H }) },
+    { ok: outsideBlack, label: t('Zwart tussen en rond de panelen (ook de rand)') },
+    { ok: blob.size <= MAX_BYTES, label: t('Bestandsgrootte {kb} KB (max. 1 MB)', { kb: (blob.size / 1024).toFixed(0) }) },
   ];
   return { blob, width: W, height: H, mode, checks };
 }
@@ -29,20 +31,20 @@ async function encodeWrap(canvas, px) {
   const W = canvas.width;
   const H = canvas.height;
   let blob = await canvasToBlob(canvas);
-  let mode = 'volledige kleuren (RGBA)';
+  let mode = t('volledige kleuren (RGBA)');
   for (const colors of [256, 128, 64]) {
     if (blob.size <= MAX_BYTES) break;
     const { indices, palette } = quantize(px, colors);
     const bytes = await encodeIndexedPng(W, H, indices, palette);
     blob = new Blob([bytes], { type: 'image/png' });
-    mode = `${palette.length / 3} kleuren (palet-PNG)`;
+    mode = t('{n} kleuren (palet-PNG)', { n: palette.length / 3 });
   }
   return { blob, mode };
 }
 
 function canvasToBlob(canvas) {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('PNG maken mislukt'))), 'image/png');
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(t('PNG maken mislukt')))), 'image/png');
   });
 }
 
@@ -206,13 +208,13 @@ function chunk(type, data) {
 }
 
 const CRC_TABLE = (() => {
-  const t = new Uint32Array(256);
+  const table = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
     let c = n;
     for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    t[n] = c >>> 0;
+    table[n] = c >>> 0;
   }
-  return t;
+  return table;
 })();
 
 function crc32(bytes) {

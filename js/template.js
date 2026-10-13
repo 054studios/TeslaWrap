@@ -1,6 +1,7 @@
 // Sjabloon = een masker op de sjabloonafmeting. Elke pixel bevat het paneel-id (rood kanaal;
 // 0 = buiten de panelen). Zie scripts/build_template.py.
 import { makeCanvas, loadImage } from './util.js';
+import { t } from './i18n.js';
 
 const MASK_CACHE_LIMIT = 40;
 
@@ -8,7 +9,7 @@ export async function loadTemplate(folder) {
   const [img, meta] = await Promise.all([
     loadImage(`${folder}/mask.png`),
     fetch(`${folder}/panels.json`).then((r) => {
-      if (!r.ok) throw new Error(`sjabloon niet gevonden (${r.status})`);
+      if (!r.ok) throw new Error(t('sjabloon niet gevonden ({status})', { status: r.status }));
       return r.json();
     }),
   ]);

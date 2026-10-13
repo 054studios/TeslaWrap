@@ -18,6 +18,7 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 - **Officiële sjablonen.** De twaalf Tesla-sjablonen komen uit [teslamotors/custom-wraps](https://github.com/teslamotors/custom-wraps). De repo bevat per model alleen het masker: per pixel het paneel-id, gemaakt door `scripts/build_template.py`. Klikken, tekenen en exporteren gebruiken dezelfde vormen.
 - **Twee pagina's.** De landingspagina staat op `/` en toont de galerij, hoe het werkt en de voordelen. De editor staat op `/ontwerp/`.
 - **Pc en mobiel.** Pointer Events voor muis, touch en pen.
+- **Talen.** Nederlands is de bron: de Nederlandse tekst is de sleutel in `js/i18n/<taal>.json`. Een tekst zonder vertaling blijft Nederlands. Vertalingen staan in de repo, dus er is geen build-stap of extern bestand nodig.
 - **Drie stappen bovenaan**: model, ontwerpen, exporteren. Zo is altijd duidelijk waar je bent en wat de volgende stap is.
 - **Layout.** Breed scherm: gereedschap links, canvas midden, eigenschappen en lagen rechts. Smal (< 900 px): gereedschap als vaste balk onderaan. Eén vinger tekent, twee vingers zoomen en verschuiven.
 - **Donker thema.** Antraciet in plaats van zwart, één accentkleur (rood) en het lettertype Geist. De landingspagina gebruikt dezelfde kleuren.
@@ -38,6 +39,7 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 12. **Project** opslaan en openen als JSON, met model, naam, lagen, foto's en stickers. Openen maakt een nieuw ontwerp in je lijst.
 13. **Galerij** op de landingspagina: voorbeelden met een filter per model. "Openen en aanpassen" maakt een eigen kopie.
 14. **Export**: controles op formaat, zwart en grootte. Boven 1 MB een palet-PNG die past. Op telefoons die bestanden kunnen delen: een knop om te delen of op te slaan.
+15. **Talen**: Nederlands, English, Deutsch, Français en Türkçe, met een kiezer in de kop. Zonder eigen keuze volgt de site het land, dan de browser, en anders Engels. Alle keuzes worden onthouden.
 
 ## Testen
 
@@ -54,6 +56,8 @@ Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests sta
 - **Model en project**: een ander model en een projectbestand maken een nieuw ontwerp, zonder bevestiging.
 - **Telefoon**: geen horizontale scroll, vaste werkbalk onderaan, canvas hoog op het scherm, export klopt.
 - **Alle twaalf modellen**: export op de juiste afmeting, zwart buiten de panelen, gevuld paneel, bestandsnaam volgens de Tesla-eisen.
+- **Talen**: kiezer en onthouden, land (Turkije), browser, taalwissel in de editor, export in het Engels, telefoon in het Turks zonder horizontale scroll, en een ontbrekende vertaling.
+- **Vertalingen**: `scripts/check_i18n.py` controleert of elke tekst in elke taal vertaald is en of de variabelen kloppen.
 
 ## Besluiten
 
@@ -61,12 +65,14 @@ Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests sta
 - **Cybertruck op 1024 × 768**, de afmeting van Tesla's sjabloon.
 - **Een nieuw model of projectbestand maakt een nieuw ontwerp.** Er is geen bevestiging meer nodig: het vorige ontwerp blijft in de lijst staan.
 - **Geen backend nu.** De galerij bevat alleen voorbeelden van ons. Een gedeelde galerij komt later, met Supabase.
+- **Taal uit het land.** De eigen keuze van de bezoeker gaat altijd voor. Het land komt van Vercel (`api/country.js`). Lokaal bestaat dat niet; dan geldt de browser.
 
 ## Niet getest
 
 - De upload in de Tesla-app zelf.
 - Echte iPhone- en Android-toestellen. De telefoontests draaien in Chromium met telefoonformaat en touch.
 - Gedeelde galerij en accounts: die zijn nog niet gebouwd.
+- De landdetectie op Vercel zelf. Lokaal bestaat `/api/country` niet; de tests nemen het land over.
 
 ## Open punten
 
@@ -74,3 +80,4 @@ Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests sta
 - **Productie**: `main` staat op de versie vóór de landingspagina en de meerdere ontwerpen. Bijwerken na bevestiging.
 - **Symmetrie**: Model X (2021+) heeft drie panelen en de Cybertruck één paneel zonder spiegelpaneel.
 - **Supabase**: voor de gedeelde galerij en accounts. In het account staan nu twee Supabase-projecten; geen van beide is van TeslaWrap. Eerst kiezen we of we een eigen project maken.
+- **Vertalingen**: nakijken door moedertaalsprekers (Duits, Frans, Turks). De Tesla-menunamen (Creations, Wrap, Upload) blijven Engels.

@@ -50,6 +50,25 @@ De twaalf sjablonen komen uit de officiële Tesla-repo [teslamotors/custom-wraps
 
 De export gebruikt altijd de afmeting van het gekozen sjabloon.
 
+## Talen
+
+De site is er in vijf talen: Nederlands, English, Deutsch, Français en Türkçe. Met de kiezer rechtsboven in de kop wissel je van taal, op de startpagina en in de editor.
+
+Bij het eerste bezoek kiest de site de taal in deze volgorde:
+
+1. je eigen keuze, als je die eerder hebt gemaakt;
+2. het land van de bezoeker (Nederland, Duitsland, Oostenrijk, Frankrijk of Turkije; andere landen gaan naar stap 3). Dat komt van Vercel en werkt dus pas online, niet lokaal;
+3. de taal van de browser, als de site die kent;
+4. anders Engels.
+
+Je keuzes onthoudt de site in de browser: de taal, het gereedschap, kleur en dikte, symmetrie, meerdere panelen, paneellijnen, paneelnummers en het galerijfilter.
+
+Vertalingen staan in `js/i18n/<taal>.json`. De Nederlandse tekst is de sleutel: `"Galerij": "Gallery"`. Een tekst zonder vertaling blijft Nederlands. Variabelen zoals `{n}` of `{name}` blijven in de vertaling staan. Een nieuwe taal voeg je toe met een `.json`-bestand en een regel in `LANGS` in `js/i18n.js`. Controleer de vertalingen met:
+
+    python3 scripts/check_i18n.py
+
+De vertalingen zijn door AI gemaakt en nog niet door moedertaalsprekers nagelezen. De Tesla-menunamen (Creations, Wrap, Upload) blijven in het Engels, omdat de Tesla-app die namen per taal anders kan noemen.
+
 ## Draaien
 
 De site gebruikt ES-modules, dus open hem via een webserver:
@@ -64,6 +83,10 @@ Ga daarna naar http://localhost:8000 (startpagina) of http://localhost:8000/ontw
 - `ontwerp/index.html`, `css/style.css`: de editor, met de stappen en de lijst met ontwerpen.
 - `js/app.js`: stappen, ontwerpen, gereedschap, zoomen, symmetrie, lagen, project, sneltoetsen en de exportdialoog.
 - `js/store.js`: ontwerpen in IndexedDB (de lijst en de inhoud).
+- `js/i18n.js`: de talen, de taalkeuze en de vertaalfunctie `t()`. De vertalingen staan in `js/i18n/<taal>.json`.
+- `js/prefs.js`: onthoudt je keuzes (taal, gereedschap, kleur, paneel-opties, galerijfilter) in de browser.
+- `api/country.js`: geeft het land van de bezoeker terug, voor de taal bij het eerste bezoek (Vercel).
+- `scripts/check_i18n.py`: controleert of elke tekst in elke taal vertaald is.
 - `js/render.js`: tekent de lagen. Dezelfde code levert het voorbeeld en de export.
 - `js/template.js`: laadt het paneel-masker, zoekt het paneel onder de aanwijzer en tekent de omlijning.
 - `js/export.js`: PNG-export met controles, en een palet-PNG als het bestand boven 1 MB komt.
@@ -109,5 +132,7 @@ Een project (JSON) bevat het model, de naam, alle lagen, foto's en stickers. Ope
 ## Hosten
 
 De site heeft geen build-stap. Zet de map op een statische host, zoals Vercel of GitHub Pages. De startpagina is `/`, de editor is `/ontwerp/`.
+
+De map `api/` bevat één serverless functie, `api/country.js`, die het land van de bezoeker teruggeeft. Vercel draait die vanzelf. Op een andere host werkt de site ook, maar dan kiest hij de taal van de browser.
 
 Voor Vercel: Framework Preset "Other", geen build-commando, Output Directory `.`.

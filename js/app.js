@@ -5,6 +5,8 @@ import { History, copyLayers } from './model.js';
 import { exportWrap } from './export.js';
 import { listDesigns, getContent, putDesign, putMeta, deleteDesign, loadLegacy, clearLegacy } from './store.js';
 import { makeCanvas, loadImage, download, stamp, esc, clamp, newId } from './util.js';
+import { t, initI18n, onLanguageChange, localeTag } from './i18n.js';
+import { getPref, setPref } from './prefs.js';
 
 const MODELS_URL = 'assets/templates/index.json';
 const MAX_PHOTO_SIDE = 2048;
@@ -19,6 +21,9 @@ const TOOL_HINTS = {
   eraser: 'De gum wist op de geselecteerde tekenlaag.',
   text: 'Tik op de wrap om een tekstlaag te plaatsen.',
 };
+const HINT_PHOTO = 'Sleep de foto om te verschuiven.';
+const HINT_STICKER = 'Sleep de sticker om te verschuiven.';
+const HINT_TEXT = 'Sleep de tekst om te verschuiven.';
 const TOOL_KEYS = { s: 'select', v: 'move', b: 'brush', e: 'eraser', t: 'text' };
 const ARROW_STEP = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 const GRIP_PX = 20; // hoe dicht bij een hoekje of het draaibolletje je moet komen (schermpixels)
@@ -111,7 +116,7 @@ const scopeNow = () => (scene.selPanels.size ? [...scene.selPanels].sort((a, b) 
 const baseLayer = () => ({
   id: 'base',
   type: 'fill',
-  name: 'Basis',
+  name: t('Basis'),
   visible: true,
   opacity: 1,
   panels: null,
@@ -120,7 +125,7 @@ const baseLayer = () => ({
   gradient: false,
   angle: 90,
 });
-const nextName = (type) => `${LABELS[type]} ${++counters[type]}`;
+const nextName = (type) => `${t(LABELS[type])} ${++counters[type]}`;
 const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y) || 1;
 const angle = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
 const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
@@ -220,7 +225,7 @@ function fitView() {
 
 // Zoomt zo in dat de gekozen panelen het beeld vullen.
 function zoomToSelection() {
-  if (!scene.selPanels.size || !scene.tpl) return flash('Kies eerst een paneel om naartoe te zoomen.');
+  if (!scene.selPanels.size || !scene.tpl) return flash(t('Kies eerst een paneel om naartoe te zoomen.'));
   const r = stageRect();
   if (!r.width) return;
   const base = r.width / scene.w; // schermpixels per canvas-pixel bij zoom 1
@@ -331,20 +336,20 @@ function updateUndo() {
 // Waar een nieuwe foto terechtkomt: de hele wrap, één paneel, of meerdere panelen samen.
 function photoScope() {
   const ids = [...scene.selPanels].sort((a, b) => a - b);
-  if (!ids.length) return { label: 'Foto voor hele wrap', short: 'hele wrap', each: false };
-  if (ids.length === 1) return { label: `Foto op paneel ${ids[0]}`, short: `paneel ${ids[0]}`, each: false };
-  return { label: `Foto over ${ids.length} panelen`, short: `${ids.length} panelen`, each: true };
+  if (!ids.length) return { label: t('Foto voor hele wrap'), short: t('hele wrap'), each: false };
+  if (ids.length === 1) return { label: t('Foto op paneel {n}', { n: ids[0] }), short: t('paneel {n}', { n: ids[0] }), each: false };
+  return { label: t('Foto over {n} panelen', { n: ids.length }), short: t('{n} panelen', { n: ids.length }), each: true };
 }
 
 function updateStatus() {
   const n = scene.selPanels.size;
-  el.modelName.textContent = scene.tpl ? scene.tpl.name : '';
-  el.panelCount.textContent = scene.tpl ? `${scene.tpl.panels.length} panelen` : '';
-  el.selCount.textContent = n ? `${n} gekozen` : 'Geen paneel gekozen';
-  el.hint.textContent = transformHint() || TOOL_HINTS[ui.tool] || '';
+  el.modelName.textContent = scene.tpl ? t(scene.tpl.name) : '';
+  el.panelCount.textContent = scene.tpl ? t('{n} panelen', { n: scene.tpl.panels.length }) : '';
+  el.selCount.textContent = n ? t('{n} gekozen', { n }) : t('Geen paneel gekozen');
+  el.hint.textContent = transformHint() || t(TOOL_HINTS[ui.tool] || '');
   el.scopeNote.textContent = n
-    ? 'Nieuwe lagen komen op de gekozen panelen.'
-    : 'Nieuwe lagen komen op de hele wrap. Kies eerst panelen om ze daarop te zetten.';
+    ? t('Nieuwe lagen komen op de gekozen panelen.')
+    : t('Nieuwe lagen komen op de hele wrap. Kies eerst panelen om ze daarop te zetten.');
   const ps = photoScope();
   el.addPhoto.textContent = ps.label;
   el.addPhotoEach.hidden = !ps.each;
@@ -354,6 +359,7 @@ function updateStatus() {
 
 function setTool(name) {
   ui.tool = name;
+  setPref('tool', name);
   document.querySelectorAll('[data-tool]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tool === name)));
   updateStatus();
 }
@@ -397,7 +403,7 @@ function onStep(step) {
 
 async function loadModelList() {
   const r = await fetch(MODELS_URL);
-  if (!r.ok) throw new Error(`modellijst niet gevonden (${r.status})`);
+  if (!r.ok) throw new Error(t('modellijst niet gevonden ({status})', { status: r.status }));
   return r.json();
 }
 
@@ -405,7 +411,7 @@ async function loadCatalog() {
   await Promise.all(
     models.map(async (m) => {
       const r = await fetch(`assets/templates/${m.id}/panels.json`);
-      if (!r.ok) throw new Error(`sjabloon ${m.id} niet gevonden`);
+      if (!r.ok) throw new Error(t('sjabloon {id} niet gevonden', { id: m.id }));
       catalog.set(m.id, await r.json());
     }),
   );
@@ -439,11 +445,11 @@ async function drawSilhouette(canvas, id) {
 
 function modelCard(m) {
   const meta = catalog.get(m.id);
-  const info = meta ? `${meta.panels.length} panelen, ${meta.width} × ${meta.height}` : '';
+  const info = meta ? t('{n} panelen, {w} × {h}', { n: meta.panels.length, w: meta.width, h: meta.height }) : '';
   const isCurrent = current && current.id === m.id;
   return `<button class="model-card${isCurrent ? ' is-current' : ''}" type="button" data-model="${m.id}">
     <span class="sil-wrap"><canvas data-sil="${m.id}" aria-hidden="true"></canvas></span>
-    <span class="model-name">${esc(m.name)}</span>
+    <span class="model-name">${esc(t(m.name))}</span>
     <span class="model-meta mono">${esc(info)}</span>
   </button>`;
 }
@@ -468,7 +474,7 @@ function renderModelGrid() {
 // Laadt een model: sjabloon, canvasafmeting en (tenzij keepDoc) een lege lagenlijst.
 async function selectModel(id, { keepDoc = false } = {}) {
   const entry = models.find((m) => m.id === id);
-  if (!entry) throw new Error(`onbekend model: ${id}`);
+  if (!entry) throw new Error(t('onbekend model: {id}', { id }));
   let tpl = templates.get(id);
   if (!tpl) {
     tpl = await loadTemplate(`assets/templates/${id}`);
@@ -533,7 +539,7 @@ async function saveDraftNow() {
   if (!current) return;
   if (!activeDesign) {
     if (isBlank(scene.layers)) return;
-    activeDesign = { id: designId(), name: `Ontwerp ${designList.length + 1}` };
+    activeDesign = { id: designId(), name: t('Ontwerp {n}', { n: designList.length + 1 }) };
   }
   const assets = [];
   for (const l of scene.layers) {
@@ -570,7 +576,7 @@ async function chooseModel(id) {
     activeDesign = null;
     setScreen('editor');
   } catch (err) {
-    alert(`Model laden mislukt: ${err.message}`);
+    alert(t('Model laden mislukt: {msg}', { msg: err.message }));
   }
 }
 
@@ -580,13 +586,13 @@ async function openDesign(id) {
     await saveDraftNow();
     const meta = designList.find((d) => d.id === id);
     const content = await getContent(id);
-    if (!meta || !content) throw new Error('dit ontwerp is niet meer beschikbaar');
+    if (!meta || !content) throw new Error(t('dit ontwerp is niet meer beschikbaar'));
     await selectModel(meta.model, { keepDoc: true });
     await applyContent(content.layers, content.assets);
     activeDesign = { id: meta.id, name: meta.name };
     setScreen('editor');
   } catch (err) {
-    alert(`Ontwerp openen mislukt: ${err.message}`);
+    alert(t('Ontwerp openen mislukt: {msg}', { msg: err.message }));
   }
 }
 
@@ -594,7 +600,7 @@ async function openDesign(id) {
 async function importProject(data, name) {
   // Oudere projecten noemden het sjabloon met pad (assets/templates/voyager): de laatste naam is het model.
   const wanted = data.model || String(data.template || '').split('/').pop();
-  if (!models.some((m) => m.id === wanted)) throw new Error(`het model "${wanted}" bestaat niet meer`);
+  if (!models.some((m) => m.id === wanted)) throw new Error(t('het model "{model}" bestaat niet meer', { model: wanted }));
   await saveDraftNow();
   await selectModel(wanted, { keepDoc: true });
   const assets = Object.entries(data.assets || {}).map(([id, a]) => ({ id, dataUrl: a.dataUrl }));
@@ -607,9 +613,9 @@ async function importProject(data, name) {
 // Een voorbeeld uit de gallery, als eigen kopie.
 async function openExample(id) {
   const r = await fetch(`voorbeelden/${encodeURIComponent(id)}.json`);
-  if (!r.ok) throw new Error(`voorbeeld niet gevonden (${r.status})`);
+  if (!r.ok) throw new Error(t('voorbeeld niet gevonden ({status})', { status: r.status }));
   const data = await r.json();
-  await importProject(data, data.name || 'Voorbeeld');
+  await importProject(data, t(data.name || 'Voorbeeld'));
 }
 
 async function duplicateDesign(id) {
@@ -617,7 +623,7 @@ async function duplicateDesign(id) {
   const meta = designList.find((d) => d.id === id);
   const content = await getContent(id);
   if (!meta || !content) return;
-  const copy = { ...meta, id: designId(), name: `Kopie van ${meta.name}`, savedAt: Date.now() };
+  const copy = { ...meta, id: designId(), name: t('Kopie van {name}', { name: meta.name }), savedAt: Date.now() };
   await putDesign(copy, content);
   designList = [copy, ...designList];
   renderDesigns();
@@ -626,7 +632,7 @@ async function duplicateDesign(id) {
 async function renameDesign(id) {
   const meta = designList.find((d) => d.id === id);
   if (!meta) return;
-  const name = prompt('Nieuwe naam voor dit ontwerp', meta.name);
+  const name = prompt(t('Nieuwe naam voor dit ontwerp'), meta.name);
   if (name === null || !name.trim()) return;
   meta.name = name.trim().slice(0, 60);
   if (activeDesign && activeDesign.id === id) activeDesign.name = meta.name;
@@ -636,7 +642,7 @@ async function renameDesign(id) {
 
 async function removeDesign(id) {
   const meta = designList.find((d) => d.id === id);
-  if (!meta || !confirm(`"${meta.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+  if (!meta || !confirm(t('"{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.', { name: meta.name }))) return;
   await deleteDesign(id);
   designList = designList.filter((d) => d.id !== id);
   if (activeDesign && activeDesign.id === id) {
@@ -655,19 +661,19 @@ function renderDesigns() {
 function designCard(d) {
   const model = models.find((m) => m.id === d.model);
   const open = activeDesign && activeDesign.id === d.id;
-  const when = new Date(d.savedAt).toLocaleString('nl-NL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  const when = new Date(d.savedAt).toLocaleString(localeTag(), { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
   return `<article class="design-card${open ? ' is-current' : ''}">
     <div class="design-thumb">${d.thumb ? `<img src="${d.thumb}" alt="">` : ''}</div>
     <div class="design-info">
       <strong>${esc(d.name)}</strong>
-      <span class="muted small">${esc(model ? model.name : d.model)}</span>
+      <span class="muted small">${esc(model ? t(model.name) : d.model)}</span>
       <span class="muted small mono">${esc(when)}</span>
     </div>
     <div class="design-actions">
-      <button class="btn ${open ? 'primary' : 'quiet'} small" type="button" data-design="open" data-id="${d.id}">${open ? 'Doorgaan' : 'Openen'}</button>
-      <button class="btn quiet small" type="button" data-design="dup" data-id="${d.id}">Dupliceren</button>
-      <button class="btn quiet small" type="button" data-design="rename" data-id="${d.id}">Hernoemen</button>
-      <button class="btn quiet small danger" type="button" data-design="del" data-id="${d.id}">Verwijderen</button>
+      <button class="btn ${open ? 'primary' : 'quiet'} small" type="button" data-design="open" data-id="${d.id}">${open ? t('Doorgaan') : t('Openen')}</button>
+      <button class="btn quiet small" type="button" data-design="dup" data-id="${d.id}">${t('Dupliceren')}</button>
+      <button class="btn quiet small" type="button" data-design="rename" data-id="${d.id}">${t('Hernoemen')}</button>
+      <button class="btn quiet small danger" type="button" data-design="del" data-id="${d.id}">${t('Verwijderen')}</button>
     </div>
   </article>`;
 }
@@ -684,7 +690,7 @@ async function loadDesigns() {
   const legacy = await loadLegacy();
   if (legacy) {
     if (legacy.model && models.some((m) => m.id === legacy.model) && !isBlank(legacy.layers || [])) {
-      const meta = { id: designId(), name: 'Mijn ontwerp', model: legacy.model, savedAt: legacy.savedAt || Date.now(), thumb: '' };
+      const meta = { id: designId(), name: t('Mijn ontwerp'), model: legacy.model, savedAt: legacy.savedAt || Date.now(), thumb: '' };
       await putDesign(meta, { layers: legacy.layers, assets: legacy.assets || [] });
     }
     await clearLegacy();
@@ -876,15 +882,15 @@ function updateTransform(p) {
 function transformHint() {
   if (!selMovable() || !['select', 'move'].includes(ui.tool)) return '';
   const l = selLayer();
-  const what = l.type === 'text' ? 'tekst' : l.sticker ? 'sticker' : 'foto';
-  return `Sleep de ${what} om te verschuiven. Een hoekje vergroot, het bolletje draait. Pijltjes en [ ] stellen fijn bij.`;
+  const hint = l.type === 'text' ? HINT_TEXT : l.sticker ? HINT_STICKER : HINT_PHOTO;
+  return `${t(hint)} ${t('Een hoekje vergroot, het bolletje draait. Pijltjes en [ ] stellen fijn bij.')}`;
 }
 
 // Een streek met symmetrie aan krijgt de spiegelas mee, zodat hij ook op de andere kant getekend wordt.
 function beginStroke(p, pointerId, erase) {
   let layer = selLayer();
   if (!layer || layer.type !== 'paint') {
-    if (erase) return flash('Kies eerst een tekenlaag (teken er eerst iets op) om te gummen.');
+    if (erase) return flash(t('Kies eerst een tekenlaag (teken er eerst iets op) om te gummen.'));
     layer = { id: newId('l'), type: 'paint', name: nextName('paint'), visible: true, opacity: 1, panels: null, strokes: [] };
     insertLayer(layer);
   }
@@ -1075,22 +1081,22 @@ function syncFields() {
 
 function renderLayerList() {
   if (!scene.layers.length) {
-    el.layers.innerHTML = '<li class="muted small">Nog geen lagen.</li>';
+    el.layers.innerHTML = `<li class="muted small">${t('Nog geen lagen.')}</li>`;
     return;
   }
   el.layers.innerHTML = [...scene.layers]
     .reverse()
     .map((l) => {
-      const scope = l.panels ? `panelen ${l.panels.join(', ')}` : 'hele wrap';
+      const scope = l.panels ? t('panelen {ids}', { ids: l.panels.join(', ') }) : t('hele wrap');
       return `<li class="layer${l.id === scene.selLayerId ? ' is-selected' : ''}" data-id="${l.id}">
-        <input type="checkbox" data-act="vis"${l.visible ? ' checked' : ''} aria-label="${esc(l.name)} zichtbaar">
+        <input type="checkbox" data-act="vis"${l.visible ? ' checked' : ''} aria-label="${esc(t('{name} zichtbaar', { name: l.name }))}">
         <button class="layer-name" type="button" data-act="select">
-          <strong>${esc(l.name)}</strong><small>${esc(`${LABELS[l.type]}, ${scope}`)}</small>
+          <strong>${esc(l.name)}</strong><small>${esc(`${t(LABELS[l.type])}, ${scope}`)}</small>
         </button>
         <span class="layer-btns">
-          <button class="icon-btn" type="button" data-act="up" aria-label="Eén laag omhoog" title="Omhoog">${icon('up')}</button>
-          <button class="icon-btn" type="button" data-act="down" aria-label="Eén laag omlaag" title="Omlaag">${icon('down')}</button>
-          <button class="icon-btn danger" type="button" data-act="del" aria-label="Laag verwijderen" title="Verwijderen">${icon('close')}</button>
+          <button class="icon-btn" type="button" data-act="up" aria-label="${t('Eén laag omhoog')}" title="${t('Omhoog')}">${icon('up')}</button>
+          <button class="icon-btn" type="button" data-act="down" aria-label="${t('Eén laag omlaag')}" title="${t('Omlaag')}">${icon('down')}</button>
+          <button class="icon-btn danger" type="button" data-act="del" aria-label="${t('Laag verwijderen')}" title="${t('Verwijderen')}">${icon('close')}</button>
         </span>
       </li>`;
     })
@@ -1108,16 +1114,16 @@ function icon(name) {
 }
 
 const rangeField = (prop, label, value, min, max, unit) =>
-  `<label class="field"><span>${label} <b class="mono" data-out="${prop}">${Math.round(value)}${unit}</b></span>` +
+  `<label class="field"><span>${t(label)} <b class="mono" data-out="${prop}">${Math.round(value)}${unit}</b></span>` +
   `<input type="range" data-prop="${prop}" data-unit="${unit}" min="${min}" max="${max}" step="1" value="${Math.round(value)}"></label>`;
 
 const colorField = (prop, label, value) =>
-  `<label class="field"><span>${label}</span><input type="color" data-prop="${prop}" value="${value}"></label>`;
+  `<label class="field"><span>${t(label)}</span><input type="color" data-prop="${prop}" value="${value}"></label>`;
 
 function renderProps() {
   const l = selLayer();
   if (!l) {
-    el.props.innerHTML = '<p class="muted small">Selecteer een laag in de lijst, of voeg er een toe.</p>';
+    el.props.innerHTML = `<p class="muted small">${t('Selecteer een laag in de lijst, of voeg er een toe.')}</p>`;
     return;
   }
 
@@ -1125,7 +1131,7 @@ function renderProps() {
   if (l.type === 'fill') {
     body =
       colorField('color', 'Kleur', l.color) +
-      `<label class="check"><input type="checkbox" data-act="grad"${l.gradient ? ' checked' : ''}> Verloop</label>` +
+      `<label class="check"><input type="checkbox" data-act="grad"${l.gradient ? ' checked' : ''}> ${t('Verloop')}</label>` +
       (l.gradient ? colorField('color2', 'Tweede kleur', l.color2) + rangeField('angle', 'Hoek', l.angle, -180, 180, '°') : '');
   } else if (l.type === 'image') {
     body =
@@ -1133,21 +1139,21 @@ function renderProps() {
       rangeField('rot', 'Draaien', l.rot, -180, 180, '°') +
       rangeField('opacity', 'Dekking', l.opacity * 100, 0, 100, '%') +
       `<div class="row">
-        <button class="btn" type="button" data-act="flip">Spiegelen</button>
-        <button class="btn" type="button" data-act="fit">Opnieuw passen</button>
-        <button class="btn" type="button" data-act="replace">Andere afbeelding</button>
+        <button class="btn" type="button" data-act="flip">${t('Spiegelen')}</button>
+        <button class="btn" type="button" data-act="fit">${t('Opnieuw passen')}</button>
+        <button class="btn" type="button" data-act="replace">${t('Andere afbeelding')}</button>
       </div>`;
   } else if (l.type === 'paint') {
     body =
       rangeField('opacity', 'Dekking', l.opacity * 100, 0, 100, '%') +
-      '<p class="muted small">Kies Kwast of Gum om te tekenen. Tekeningen worden altijd tot de panelen beperkt.</p>';
+      `<p class="muted small">${t('Kies Kwast of Gum om te tekenen. Tekeningen worden altijd tot de panelen beperkt.')}</p>`;
   } else if (l.type === 'text') {
     body =
-      `<label class="field"><span>Tekst</span><input type="text" data-prop="text" value="${esc(l.text)}"></label>` +
-      `<label class="field"><span>Lettertype</span><select data-prop="font">${FONTS.map(
+      `<label class="field"><span>${t('Tekst')}</span><input type="text" data-prop="text" value="${esc(l.text)}"></label>` +
+      `<label class="field"><span>${t('Lettertype')}</span><select data-prop="font">${FONTS.map(
         (f) => `<option${f === l.font ? ' selected' : ''}>${f}</option>`,
       ).join('')}</select></label>` +
-      `<label class="check"><input type="checkbox" data-act="bold"${l.bold ? ' checked' : ''}> Vet</label>` +
+      `<label class="check"><input type="checkbox" data-act="bold"${l.bold ? ' checked' : ''}> ${t('Vet')}</label>` +
       colorField('color', 'Kleur', l.color) +
       rangeField('size', 'Grootte', l.size, 16, 500, 'px') +
       rangeField('rot', 'Draaien', l.rot, -180, 180, '°') +
@@ -1158,16 +1164,16 @@ function renderProps() {
   const scope =
     l.type === 'paint'
       ? ''
-      : `<div class="field"><span>Toepassen op</span>
+      : `<div class="field"><span>${t('Toepassen op')}</span>
         <div class="seg">
-          <button class="btn${l.panels ? '' : ' on'}" type="button" data-act="scope-all">Hele wrap</button>
-          <button class="btn${l.panels ? ' on' : ''}" type="button" data-act="scope-sel"${n ? '' : ' disabled'}>Gekozen panelen (${n})</button>
+          <button class="btn${l.panels ? '' : ' on'}" type="button" data-act="scope-all">${t('Hele wrap')}</button>
+          <button class="btn${l.panels ? ' on' : ''}" type="button" data-act="scope-sel"${n ? '' : ' disabled'}>${t('Gekozen panelen ({n})', { n })}</button>
         </div>
-        <small class="muted">${l.panels ? `Nu op panelen ${l.panels.join(', ')}` : 'Nu op alle panelen'}</small>
+        <small class="muted">${l.panels ? t('Nu op panelen {ids}', { ids: l.panels.join(', ') }) : t('Nu op alle panelen')}</small>
       </div>`;
 
   el.props.innerHTML = `<h3>${esc(l.name)}</h3>${scope}${body}
-    <button class="btn quiet danger" type="button" data-act="delete">Laag verwijderen</button>`;
+    <button class="btn quiet danger" type="button" data-act="delete">${t('Laag verwijderen')}</button>`;
 }
 
 function setProp(l, key, raw) {
@@ -1178,27 +1184,27 @@ function setProp(l, key, raw) {
 }
 
 function onPropInput(e) {
-  const t = e.target;
+  const input = e.target;
   const l = selLayer();
-  if (!l || !t.dataset.prop) return;
-  setProp(l, t.dataset.prop, t.value);
-  const out = el.props.querySelector(`[data-out="${t.dataset.prop}"]`);
-  if (out) out.textContent = t.value + (t.dataset.unit || '');
+  if (!l || !input.dataset.prop) return;
+  setProp(l, input.dataset.prop, input.value);
+  const out = el.props.querySelector(`[data-out="${input.dataset.prop}"]`);
+  if (out) out.textContent = input.value + (input.dataset.unit || '');
   requestRender();
 }
 
 function onPropChange(e) {
-  const t = e.target;
+  const input = e.target;
   const l = selLayer();
   if (!l) return;
-  if (t.dataset.prop) {
-    setProp(l, t.dataset.prop, t.value);
+  if (input.dataset.prop) {
+    setProp(l, input.dataset.prop, input.value);
     commit({ list: false, props: false });
-  } else if (t.dataset.act === 'grad') {
-    l.gradient = t.checked;
+  } else if (input.dataset.act === 'grad') {
+    l.gradient = input.checked;
     commit();
-  } else if (t.dataset.act === 'bold') {
-    l.bold = t.checked;
+  } else if (input.dataset.act === 'bold') {
+    l.bold = input.checked;
     commit({ list: false, props: false });
   }
 }
@@ -1259,11 +1265,11 @@ function onLayerClick(e) {
 }
 
 function onLayerChange(e) {
-  const t = e.target;
-  if (t.dataset.act !== 'vis') return;
-  const l = findLayer(t.closest('li').dataset.id);
+  const input = e.target;
+  if (input.dataset.act !== 'vis') return;
+  const l = findLayer(input.closest('li').dataset.id);
   if (!l) return;
-  l.visible = t.checked;
+  l.visible = input.checked;
   commit();
 }
 
@@ -1339,7 +1345,7 @@ async function pickPhotosEach(e) {
   const panels = [...scene.selPanels].sort((a, b) => a - b);
   if (!files.length || panels.length < 2) return;
   if (files.length !== 1 && files.length !== panels.length) {
-    alert(`Kies één foto, of precies ${panels.length} foto's: één per gekozen paneel.`);
+    alert(t("Kies één foto, of precies {n} foto's: één per gekozen paneel.", { n: panels.length }));
     return;
   }
   try {
@@ -1371,7 +1377,7 @@ async function pickPhotosEach(e) {
     });
     commit();
   } catch (err) {
-    alert(`Foto's konden niet worden toegevoegd: ${err.message}`);
+    alert(t("Foto's konden niet worden toegevoegd: {msg}", { msg: err.message }));
   }
 }
 
@@ -1411,7 +1417,7 @@ async function pickFile(e, { sticker }) {
     }
     commit();
   } catch (err) {
-    alert(`Afbeelding kon niet worden toegevoegd: ${err.message}`);
+    alert(t('Afbeelding kon niet worden toegevoegd: {msg}', { msg: err.message }));
   }
 }
 
@@ -1440,11 +1446,11 @@ async function loadProjectFile(e) {
   try {
     const data = JSON.parse(await file.text());
     if (data.format !== 'tesla-wrap-project' || !Array.isArray(data.layers)) {
-      throw new Error('dit is geen Tesla wrap-project');
+      throw new Error(t('dit is geen Tesla wrap-project'));
     }
-    await importProject(data, data.name || 'Geïmporteerd ontwerp');
+    await importProject(data, data.name || t('Geïmporteerd ontwerp'));
   } catch (err) {
-    alert(`Project openen mislukt: ${err.message}`);
+    alert(t('Project openen mislukt: {msg}', { msg: err.message }));
   }
 }
 
@@ -1454,7 +1460,7 @@ async function openExport() {
   try {
     showExport(await exportWrap(scene.out, scene.tpl));
   } catch (err) {
-    alert(`Exporteren mislukt: ${err.message}`);
+    alert(t('Exporteren mislukt: {msg}', { msg: err.message }));
   }
 }
 
@@ -1472,7 +1478,7 @@ function showExport(result) {
   const ok = result.checks.every((c) => c.ok);
 
   $('#export-preview').src = exportUrl;
-  $('#export-info').textContent = `${current.name}, ${result.width} × ${result.height} px, ${(result.blob.size / 1024).toFixed(0)} KB, ${result.mode}`;
+  $('#export-info').textContent = `${t(current.name)}, ${result.width} × ${result.height} px, ${(result.blob.size / 1024).toFixed(0)} KB, ${result.mode}`;
   $('#export-checks').innerHTML = result.checks
     .map((c) => `<li class="${c.ok ? 'ok' : 'fail'}"><span>${c.ok ? '✓' : '✗'}</span>${esc(c.label)}</li>`)
     .join('');
@@ -1487,7 +1493,7 @@ function showExport(result) {
   share.hidden = !ok || !(navigator.canShare && navigator.canShare({ files: [file] }));
   share.onclick = () => navigator.share({ files: [file], title: 'Tesla wrap' }).catch(() => {});
 
-  el.dialog.showModal();
+  if (!el.dialog.open) el.dialog.showModal();
 }
 
 // --- toetsenbord en bindingen ---------------------------------------------------------
@@ -1568,7 +1574,7 @@ function setupEvents() {
     addText({ x: (x0 + x1) / 2, y: (y0 + y1) / 2 });
   });
   $('#clear-all').addEventListener('click', () => {
-    if (!confirm('Alle lagen verwijderen en opnieuw beginnen?')) return;
+    if (!confirm(t('Alle lagen verwijderen en opnieuw beginnen?'))) return;
     resetDocument();
     scheduleSave();
   });
@@ -1581,19 +1587,25 @@ function setupEvents() {
     refresh();
   });
 
+  el.color.addEventListener('input', () => setPref('color', el.color.value));
   el.size.addEventListener('input', () => {
     el.sizeOut.textContent = el.size.value;
+    setPref('size', el.size.value);
   });
+  el.multi.addEventListener('change', () => setPref('multi', el.multi.checked));
   el.symmetry.addEventListener('change', () => {
     ui.symmetry = el.symmetry.checked;
+    setPref('symmetry', ui.symmetry);
     requestRender();
   });
   el.outlines.addEventListener('change', () => {
     ui.outlines = el.outlines.checked;
+    setPref('outlines', ui.outlines);
     requestRender();
   });
   el.labels.addEventListener('change', () => {
     ui.labels = el.labels.checked;
+    setPref('labels', ui.labels);
     requestRender();
   });
 
@@ -1631,17 +1643,42 @@ function setupEvents() {
   $('#export').addEventListener('click', openExport);
 }
 
+// Zet de onthouden keuzes terug: gereedschap, kleur, dikte en de paneel-opties.
+function restorePrefs() {
+  el.color.value = getPref('color', el.color.value);
+  el.size.value = getPref('size', el.size.value);
+  el.sizeOut.textContent = el.size.value;
+  el.multi.checked = getPref('multi', el.multi.checked);
+  el.symmetry.checked = getPref('symmetry', el.symmetry.checked);
+  el.outlines.checked = getPref('outlines', el.outlines.checked);
+  el.labels.checked = getPref('labels', el.labels.checked);
+  ui.symmetry = el.symmetry.checked;
+  ui.outlines = el.outlines.checked;
+  ui.labels = el.labels.checked;
+  const tool = getPref('tool', 'select');
+  setTool(Object.values(TOOL_KEYS).includes(tool) ? tool : 'select');
+}
+
+// Bij een taalwissel: alles wat je ziet opnieuw vertalen.
+function refreshText() {
+  if (models.length) renderModelGrid();
+  renderDesigns();
+  refresh();
+  if (el.dialog.open) openExport();
+}
+
 async function init() {
   setupEvents();
-  setTool('select');
-  el.sizeOut.textContent = el.size.value;
+  await initI18n();
+  onLanguageChange(refreshText);
+  restorePrefs();
   try {
     const data = await loadModelList();
     models = data.models;
     await loadCatalog();
     await loadDesigns();
   } catch (err) {
-    el.startNote.textContent = `Laden mislukt: ${err.message}`;
+    el.startNote.textContent = t('Laden mislukt: {msg}', { msg: err.message });
   }
   // Een link uit de gallery (?voorbeeld=id) opent dat voorbeeld als eigen ontwerp.
   const example = new URLSearchParams(location.search).get('voorbeeld');
@@ -1651,7 +1688,7 @@ async function init() {
       await openExample(example);
       return;
     } catch (err) {
-      el.startNote.textContent = `Voorbeeld openen mislukt: ${err.message}`;
+      el.startNote.textContent = t('Voorbeeld openen mislukt: {msg}', { msg: err.message });
     }
   }
   setScreen('start');
