@@ -77,7 +77,7 @@ Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests sta
 ## Open punten
 
 - **Hosting**: Vercel koppelen aan deze repo (framework "Other", geen build-commando, output directory `.`). Dat vraagt een Vercel-token of een koppeling in het Vercel-dashboard.
-- **Productie**: `main` staat op de versie vóór de landingspagina en de meerdere ontwerpen. Bijwerken na bevestiging.
+- **Productie**: `main` is de productieversie. Die werken we alleen bij als de gebruiker daarom vraagt.
 - **Symmetrie**: Model X (2021+) heeft drie panelen en de Cybertruck één paneel zonder spiegelpaneel.
 - **Supabase**: voor de gedeelde galerij en accounts. In het account staan nu twee Supabase-projecten; geen van beide is van TeslaWrap. Eerst kiezen we of we een eigen project maken.
 - **Vertalingen**: nakijken door moedertaalsprekers (Duits, Frans, Turks). De Tesla-menunamen (Creations, Wrap, Upload) blijven Engels.
