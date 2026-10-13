@@ -1,0 +1,261 @@
+{
+  "name": "Voyager NCC-74656",
+  "size": 1024,
+  "panels": [
+    {
+      "id": 1,
+      "name": "Paneel 1: boven midden",
+      "area": 53793,
+      "bbox": [
+        241,
+        21,
+        792,
+        156
+      ],
+      "center": [
+        513.1,
+        80.0
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Paneel 2: boven links",
+      "area": 18752,
+      "bbox": [
+        42,
+        35,
+        250,
+        299
+      ],
+      "center": [
+        160.8,
+        194.6
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Paneel 3: boven rechts",
+      "area": 18648,
+      "bbox": [
+        785,
+        34,
+        992,
+        299
+      ],
+      "center": [
+        872.9,
+        193.9
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Paneel 4: boven midden",
+      "area": 51449,
+      "bbox": [
+        367,
+        158,
+        662,
+        408
+      ],
+      "center": [
+        514.2,
+        281.8
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Paneel 5: midden links",
+      "area": 32051,
+      "bbox": [
+        93,
+        315,
+        236,
+        559
+      ],
+      "center": [
+        164.4,
+        433.1
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Paneel 6: midden midden",
+      "area": 2429,
+      "bbox": [
+        309,
+        418,
+        383,
+        461
+      ],
+      "center": [
+        348.5,
+        439.4
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Paneel 7: midden midden",
+      "area": 2479,
+      "bbox": [
+        645,
+        418,
+        720,
+        461
+      ],
+      "center": [
+        678.2,
+        439.5
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Paneel 8: midden rechts",
+      "area": 32196,
+      "bbox": [
+        796,
+        315,
+        941,
+        558
+      ],
+      "center": [
+        867.6,
+        433.2
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Paneel 9: midden links",
+      "area": 8594,
+      "bbox": [
+        259,
+        302,
+        283,
+        847
+      ],
+      "center": [
+        270.5,
+        582.2
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Paneel 10: midden rechts",
+      "area": 8612,
+      "bbox": [
+        751,
+        300,
+        776,
+        848
+      ],
+      "center": [
+        763.4,
+        581.7
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Paneel 11: midden links",
+      "area": 26947,
+      "bbox": [
+        88,
+        549,
+        250,
+        782
+      ],
+      "center": [
+        171.8,
+        650.1
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Paneel 12: midden rechts",
+      "area": 26981,
+      "bbox": [
+        783,
+        550,
+        944,
+        782
+      ],
+      "center": [
+        860.0,
+        650.4
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Paneel 13: onder links",
+      "area": 39289,
+      "bbox": [
+        11,
+        313,
+        265,
+        959
+      ],
+      "center": [
+        116.2,
+        691.4
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Paneel 14: onder rechts",
+      "area": 39918,
+      "bbox": [
+        767,
+        313,
+        1020,
+        960
+      ],
+      "center": [
+        915.4,
+        690.9
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Paneel 15: onder midden",
+      "area": 32197,
+      "bbox": [
+        363,
+        600,
+        666,
+        777
+      ],
+      "center": [
+        515.2,
+        706.7
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Paneel 16: onder midden",
+      "area": 10702,
+      "bbox": [
+        394,
+        785,
+        635,
+        835
+      ],
+      "center": [
+        514.1,
+        808.5
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Paneel 17: onder midden",
+      "area": 38870,
+      "bbox": [
+        255,
+        842,
+        773,
+        1011
+      ],
+      "center": [
+        513.4,
+        920.6
+      ]
+    }
+  ]
+}

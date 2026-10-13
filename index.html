@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Ontwerp je eigen Tesla wrap en download hem als 1024 × 1024 PNG, klaar voor de Tesla-app.">
+  <meta name="theme-color" content="#0d1117">
+  <title>Tesla Wrap Ontwerper</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Tesla Wrap <span>ontwerper</span></div>
+    <div class="top-actions">
+      <button class="btn icon" id="undo" type="button" aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl+Z)" disabled>↶</button>
+      <button class="btn icon" id="redo" type="button" aria-label="Opnieuw" title="Opnieuw (Ctrl+Y)" disabled>↷</button>
+      <button class="btn" id="save-project" type="button">Project opslaan</button>
+      <button class="btn" id="open-project" type="button">Project openen</button>
+      <button class="btn primary" id="export" type="button">Exporteren als PNG</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card tools" aria-label="Gereedschap">
+      <h2>Gereedschap</h2>
+      <div class="tool-grid">
+        <button class="btn" type="button" data-tool="select" aria-pressed="true">Paneel</button>
+        <button class="btn" type="button" data-tool="move" aria-pressed="false">Verplaatsen</button>
+        <button class="btn" type="button" data-tool="brush" aria-pressed="false">Kwast</button>
+        <button class="btn" type="button" data-tool="eraser" aria-pressed="false">Gum</button>
+        <button class="btn" type="button" data-tool="text" aria-pressed="false">Tekst</button>
+      </div>
+
+      <details open>
+        <summary>Kwast en kleur</summary>
+        <label class="field"><span>Kleur</span><input type="color" id="color" value="#e11d48"></label>
+        <label class="field"><span>Dikte <b id="size-out">24</b> px</span><input type="range" id="size" min="4" max="200" value="24"></label>
+      </details>
+
+      <details open>
+        <summary>Panelen</summary>
+        <label class="check"><input type="checkbox" id="multi"> Meerdere panelen kiezen</label>
+        <div class="row">
+          <button class="btn" type="button" id="select-all">Alles</button>
+          <button class="btn" type="button" id="select-none">Niets</button>
+        </div>
+        <label class="check"><input type="checkbox" id="outlines" checked> Paneellijnen tonen</label>
+        <label class="check"><input type="checkbox" id="labels"> Paneelnummers tonen</label>
+      </details>
+
+      <details open>
+        <summary>Toevoegen</summary>
+        <div class="stack">
+          <button class="btn" type="button" id="add-fill">Kleurvlak</button>
+          <button class="btn" type="button" id="add-photo">Foto</button>
+          <button class="btn" type="button" id="add-text">Tekst</button>
+        </div>
+        <p class="muted small" id="scope-note"></p>
+      </details>
+
+      <button class="btn danger" type="button" id="clear-all">Alles leegmaken</button>
+    </section>
+
+    <section class="stage-col" aria-label="Ontwerp">
+      <div class="stage">
+        <canvas id="wrap" width="1024" height="1024" aria-hidden="true"></canvas>
+        <canvas id="overlay" width="1024" height="1024" role="img" aria-label="Ontwerp van de wrap"></canvas>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+      <p class="hint" id="hint"></p>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <h2>Eigenschappen</h2>
+        <div id="props"></div>
+      </section>
+      <section class="card">
+        <h2>Lagen <small>boven naar onder</small></h2>
+        <ol class="layer-list" id="layers"></ol>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="export-dialog" aria-labelledby="export-title">
+    <form method="dialog" class="export-head">
+      <h2 id="export-title">Exporteren</h2>
+      <button class="btn icon" value="close" aria-label="Sluiten">✕</button>
+    </form>
+    <div class="export-body">
+      <img id="export-preview" alt="Voorbeeld van je wrap">
+      <p class="muted small" id="export-info"></p>
+      <ul class="checks" id="export-checks"></ul>
+      <p class="muted small">Upload dit bestand daarna in de Tesla-app bij je wrap.</p>
+    </div>
+    <div class="export-actions">
+      <a class="btn primary" id="export-download" download>Downloaden als PNG</a>
+      <button class="btn" id="export-share" type="button" hidden>Delen / opslaan</button>
+    </div>
+  </dialog>
+
+  <input type="file" id="photo-input" accept="image/*" class="sr-only" tabindex="-1">
+  <input type="file" id="project-input" accept="application/json,.json" class="sr-only" tabindex="-1">
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
