@@ -14,6 +14,16 @@ De editor heeft drie stappen, bovenaan de pagina:
 
 Het ontwerp wordt automatisch bewaard in dezelfde browser. Kom je later terug, dan kun je doorgaan waar je was.
 
+### Foto's
+
+Waar een foto komt, hangt af van de gekozen panelen:
+
+- **Geen paneel gekozen**: de foto komt op de hele wrap.
+- **Één paneel gekozen**: de foto komt op dat paneel.
+- **Meerdere panelen gekozen**: de knop *Foto over N panelen* legt één foto over alle gekozen panelen. Met *Eén foto per paneel* krijgt elk paneel een eigen foto: kies één bestand (dan voor alle panelen), of precies zoveel bestanden als er panelen zijn, in paneelvolgorde.
+
+Op de telefoon staat *Foto* in de werkbalk onderaan. Daaronder staat waar de foto komt: hele wrap of paneel.
+
 ### Bediening
 
 - **Zoomen**: met de knoppen rechtsonder het canvas, het scrollwiel, of "Naar gekozen paneel". Op de telefoon tekent één vinger, en twee vingers knijpen en verschuiven.

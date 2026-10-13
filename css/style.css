@@ -910,7 +910,7 @@ dialog::backdrop {
     bottom: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 4px;
     padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
     background: rgba(15, 18, 23, 0.94);
@@ -924,7 +924,18 @@ dialog::backdrop {
     gap: 4px;
     height: 56px;
     padding: 0;
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  .mobile-tools .tool span {
+    white-space: nowrap;
+  }
+
+  .mobile-tools .tool small {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   #start {

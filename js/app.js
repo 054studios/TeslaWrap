@@ -54,6 +54,10 @@ const el = {
   labels: $('#labels'),
   scopeNote: $('#scope-note'),
   photoInput: $('#photo-input'),
+  photoEachInput: $('#photo-each-input'),
+  addPhoto: $('#add-photo'),
+  addPhotoEach: $('#add-photo-each'),
+  mobilePhotoScope: $('#mobile-photo-scope'),
   stickerInput: $('#sticker-input'),
   projectInput: $('#project-input'),
   dialog: $('#export-dialog'),
@@ -318,6 +322,14 @@ function updateUndo() {
   el.redo.disabled = !history.canRedo;
 }
 
+// Waar een nieuwe foto terechtkomt: de hele wrap, één paneel, of meerdere panelen samen.
+function photoScope() {
+  const ids = [...scene.selPanels].sort((a, b) => a - b);
+  if (!ids.length) return { label: 'Foto voor hele wrap', short: 'hele wrap', each: false };
+  if (ids.length === 1) return { label: `Foto op paneel ${ids[0]}`, short: `paneel ${ids[0]}`, each: false };
+  return { label: `Foto over ${ids.length} panelen`, short: `${ids.length} panelen`, each: true };
+}
+
 function updateStatus() {
   const n = scene.selPanels.size;
   el.modelName.textContent = scene.tpl ? scene.tpl.name : '';
@@ -327,6 +339,10 @@ function updateStatus() {
   el.scopeNote.textContent = n
     ? 'Nieuwe lagen komen op de gekozen panelen.'
     : 'Nieuwe lagen komen op de hele wrap. Kies eerst panelen om ze daarop te zetten.';
+  const ps = photoScope();
+  el.addPhoto.textContent = ps.label;
+  el.addPhotoEach.hidden = !ps.each;
+  el.mobilePhotoScope.textContent = ps.short;
   el.zoomLevel.textContent = `${Math.round(view.z * 100)}%`;
 }
 
@@ -1082,6 +1098,49 @@ function alphaBounds(ctx, w, h) {
   return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
+// Eén foto per gekozen paneel. Eén bestand geldt voor alle panelen; anders precies één bestand per paneel, in paneelvolgorde.
+async function pickPhotosEach(e) {
+  const files = [...e.target.files];
+  e.target.value = '';
+  const panels = [...scene.selPanels].sort((a, b) => a - b);
+  if (!files.length || panels.length < 2) return;
+  if (files.length !== 1 && files.length !== panels.length) {
+    alert(`Kies één foto, of precies ${panels.length} foto's: één per gekozen paneel.`);
+    return;
+  }
+  try {
+    const assets = [];
+    for (const file of files) {
+      const asset = await loadPhoto(file);
+      scene.assets.set(asset.id, asset);
+      assets.push(asset);
+    }
+    panels.forEach((id, i) => {
+      const layer = {
+        id: newId('l'),
+        type: 'image',
+        name: nextName('image'),
+        sticker: false,
+        visible: true,
+        opacity: 1,
+        panels: [id],
+        asset: (assets.length === 1 ? assets[0] : assets[i]).id,
+        x: scene.w / 2,
+        y: scene.h / 2,
+        rot: 0,
+        zoom: 1,
+        base: 1,
+        flip: false,
+      };
+      fitLayer(layer);
+      insertLayer(layer);
+    });
+    commit();
+  } catch (err) {
+    alert(`Foto's konden niet worden toegevoegd: ${err.message}`);
+  }
+}
+
 async function pickFile(e, { sticker }) {
   const file = e.target.files[0];
   e.target.value = '';
@@ -1262,10 +1321,13 @@ function setupEvents() {
   });
 
   $('#add-fill').addEventListener('click', addFill);
-  $('#add-photo').addEventListener('click', () => {
-    photoTarget = null;
-    el.photoInput.click();
-  });
+  for (const btn of [$('#add-photo'), $('#mobile-photo')]) {
+    btn.addEventListener('click', () => {
+      photoTarget = null;
+      el.photoInput.click();
+    });
+  }
+  $('#add-photo-each').addEventListener('click', () => el.photoEachInput.click());
   $('#add-sticker').addEventListener('click', () => {
     el.stickerInput.click();
   });
@@ -1309,6 +1371,7 @@ function setupEvents() {
   $('#open-project').addEventListener('click', () => el.projectInput.click());
   el.projectInput.addEventListener('change', loadProjectFile);
   el.photoInput.addEventListener('change', (e) => pickFile(e, { sticker: false }));
+  el.photoEachInput.addEventListener('change', pickPhotosEach);
   el.stickerInput.addEventListener('change', (e) => pickFile(e, { sticker: true }));
 
   $('#zoom-in').addEventListener('click', () => zoomBy(1.25));

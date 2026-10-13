@@ -26,7 +26,7 @@ Een website waarop je zelf een Tesla-wrap ontwerpt en die downloadt als PNG, kla
 1. **Model kiezen** uit twaalf modellen in vijf groepen. Bij wisselen wordt het ontwerp gewist, na bevestiging.
 2. **Panelen kiezen**: klikken of tikken. Met "Meerdere panelen" of Shift kies je er meer.
 3. **Kleurvlak**: massief of verloop, voor de hele wrap of alleen voor de gekozen panelen.
-4. **Foto**: voor de hele wrap of per onderdeel. Verplaatsen, vergroten, draaien, spiegelen en dekking.
+4. **Foto**: voor de hele wrap (geen paneel gekozen), op één paneel, over meerdere panelen samen, of met "Eén foto per paneel" een eigen foto per paneel. Verplaatsen, vergroten, draaien, spiegelen, dekking en andere afbeelding.
 5. **Tekenen**: kwast en gum met kleur en dikte. Tekeningen blijven binnen de panelen.
 6. **Stickers**: PNG, WebP of SVG. Transparante delen blijven doorzichtig, dus het zwart van de achtergrond is eronder zichtbaar.
 7. **Tekst**: lettertype, grootte, kleur, vet en draaien.
@@ -45,6 +45,7 @@ Playwright (Chromium), op pc (1280 px) en telefoon (390 px, touch). De tests sta
 - **Zoomen**: knoppen, scrollwiel en "Naar gekozen paneel". Op de telefoon: twee vingers.
 - **Symmetrie**: zonder symmetrie niets aan de andere kant; met symmetrie aan beide kanten.
 - **Stickers**: staan in de export.
+- **Foto's**: voor de hele wrap, op één paneel, over meerdere panelen en per paneel een eigen foto. Een verkeerd aantal bestanden geeft een melding en voegt niets toe. Foto's blijven staan na autosave en in een project. Op de telefoon via de werkbalk.
 - **Automatisch opslaan**: na herladen de herstelkaart; "Doorgaan" herstelt de lagen.
 - **Modelwissel en project**: wisselen met bevestiging; project openen geweigerd of bevestigd; project opslaan en openen zet het model terug.
 - **Telefoon**: geen horizontale scroll, vaste werkbalk onderaan, canvas hoog op het scherm, export klopt.
